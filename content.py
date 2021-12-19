@@ -16,7 +16,7 @@ print(requests.get(url))
 #NBA teams for which the user desires score and schedule updates
 #added to via gui, text or email
 #sample teams used to test algorithm, clear this later
-teams = ["Sixers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]
+teams = ["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]
 
 #function within the primary functions getScores() and getSchedule()
 def getTeamsPlay(soup):
@@ -49,7 +49,7 @@ def getScores():
     soup = BeautifulSoup(content,features="html.parser")
     #html code array for score data
     scoreList = soup.findAll("td",class_="total")
-    print(scoreList)
+
     #builds str array of scores
     sList = []
     for i in scoreList:
@@ -65,7 +65,7 @@ def getScores():
     pListFinal = pListFinalRef[1]
     sListFinal = [sList[pListFinalRef[0].index(b)] for b in pListFinal]
     
-    res = ""
+    res = "Yesterday's Scores: \n"
     for c in range(1,len(pListFinal),2):
         if int(sListFinal[c-1])>int(sListFinal[c]):
             res += pListFinal[c-1].upper() + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
@@ -73,25 +73,38 @@ def getScores():
             res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c].upper() + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
     return res
 
-
 def getSchedule():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     #automatically goes to today's slate of NBA games
     driver.get("https://www.espn.com/nba/scoreboard/_/date/")
     content = driver.page_source
     soup = BeautifulSoup(content,features="html.parser")
-    #the lambda function strictly matches those with class ="time"
+    #the lambda function strictly matches those with class ="time" and if games are postponed it does the same but for the corresponding header
     #credit to Nuno Andre on https://stackoverflow.com/questions/14496860/how-to-beautiful-soup-bs4-match-just-one-and-only-one-css-class#14516768 for the lambda function
     timeList = soup.find_all(lambda x:
-    x.name == 'span' and
-    'time' in x.get('class', []) and
-    not 'cscore_time' in x['class'])
-    print(timeList)
+    (x.name == 'span' or x.name=="th") and
+    ('time' in x.get('class', []) or 'date-time' in x.get('class', [])) and
+    not 'cscore_time' in x['class'] and not 'date_time' in x.get('data-behavior',[]))
+
+    #formats to array of times in string format
+    tList =[str(i)[str(i).index(">")+1:str(i).rfind("<")].upper() for i in timeList]
+
+    #same procedure as when done in getScores() function
     pListFinalRef = getTeamsPlay(soup)
     pListFinal = pListFinalRef[1]
 
-getSchedule()
 
+    tListFinal = []
+    #accounts for the fact that the number teams playing are double the amount of game times for the day
+    for a in range(1,len(pListFinalRef[0]),2):
+        if pListFinalRef[0][a-1] in teams or pListFinalRef[0][a] in teams:
+            tListFinal.append(tList[int(a/2)])
+    
+
+    res = "Today's Slate: \n"
+    for b in range(1,len(pListFinal),2):
+        res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
+    return res
 
 def getHourlyForecast():
     pass
