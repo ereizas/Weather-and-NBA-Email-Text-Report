@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from requests.api import get
-
+import re
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -80,14 +80,17 @@ def getSchedule():
     driver.get("https://www.espn.com/nba/scoreboard/_/date/")
     content = driver.page_source
     soup = BeautifulSoup(content,features="html.parser")
-    #figure out why it is picking items with class = things other than "time"
-    timeList = soup.findAll("span", class_="time")
+    #the lambda function strictly matches those with class ="time"
+    #credit to Nuno Andre on https://stackoverflow.com/questions/14496860/how-to-beautiful-soup-bs4-match-just-one-and-only-one-css-class#14516768 for the lambda function
+    timeList = soup.find_all(lambda x:
+    x.name == 'span' and
+    'time' in x.get('class', []) and
+    not 'cscore_time' in x['class'])
     print(timeList)
     pListFinalRef = getTeamsPlay(soup)
     pListFinal = pListFinalRef[1]
 
 getSchedule()
-print("Hello")
 
 
 def getHourlyForecast():
