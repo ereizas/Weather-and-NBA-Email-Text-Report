@@ -16,12 +16,29 @@ print(requests.get(url))
 #NBA teams for which the user desires score and schedule updates
 #added to via gui, text or email
 #sample teams used to test algorithm, clear this later
-teams = ["Sixers","Bulls","Heat","Warriors","Trail Blazers","Raptors"]
+teams = ["Sixers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]
+
+#function within the primary functions getScores() and getSchedule()
+def getTeamsPlay(soup):
+    #finds the html code for the names of teams played and their scores in separate arrays
+    playedList = soup.findAll("span",class_="sb-team-short")
+    #converts all teams to string format in an array
+    pList = [str(i)[str(i).index(">")+1:str(i).rfind("<")] for i in playedList]
+    #picks user's teams that played and the opposing team that day
+    pListFinal = []
+    for a in range(1,len(pList),2):
+        if pList[a-1] in teams or pList[a] in teams:
+            pListFinal.append(pList[a-1])
+            pListFinal.append(pList[a])
+    #creates an array with two arrays, with one for all teams playing/played and the other for just the ones of interest
+    arr=[]
+    arr.append(pList)
+    arr.append(pListFinal)
+    return arr
 
 def getScores():
     #formats date for the link
     yesterday = str(date.today()-timedelta(days = 1)).replace("-","")
-
 
     #makes the default Google Chrome
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -30,34 +47,27 @@ def getScores():
     driver.get("https://www.espn.com/nba/scoreboard/_/date/"+yesterday)
     content = driver.page_source
     soup = BeautifulSoup(content,features="html.parser")
-    
-    #finds the html code for the names of teams played and their scores in separate arrays
-    playedList = soup.findAll("span",class_="sb-team-short")
+    #html code array for score data
     scoreList = soup.findAll("td",class_="total")
-    #builds string list of teams and str array of scores
-    pList = [str(i)[str(i).index(">")+1:str(i).rfind("<")] for i in playedList]
-    
+    print(scoreList)
+    #builds str array of scores
     sList = []
     for i in scoreList:
         tempStr = ""
-        for j in str(i):
-            if(j.isnumeric()):
-                tempStr+=j
+        #find("n") skips to later index that is before desired data for faster runtime
+        for j in range(len(str(i)[str(i).find("n")]),len(str(i))):
+            if(str(i)[j].isnumeric()):
+                tempStr+=str(i)[j]
         sList.append(tempStr)
     
     #gets the desired information in same length arrays that match by index
-    pListFinal = []
-    for a in range(1,len(pList),2):
-        if pList[a-1] in teams or pList[a] in teams:
-            pListFinal.append(pList[a-1])
-            pListFinal.append(pList[a])
-    sListFinal = [sList[pList.index(b)] for b in pListFinal]
-    print(pListFinal)
-    print(sListFinal)
+    pListFinalRef = getTeamsPlay(soup)
+    pListFinal = pListFinalRef[1]
+    sListFinal = [sList[pListFinalRef[0].index(b)] for b in pListFinal]
     
     res = ""
     for c in range(1,len(pListFinal),2):
-        if sListFinal[c-1]>sListFinal[c]:
+        if int(sListFinal[c-1])>int(sListFinal[c]):
             res += pListFinal[c-1].upper() + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
         else:
             res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c].upper() + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
@@ -65,10 +75,20 @@ def getScores():
 
 
 def getSchedule():
-    today = str(date.today().replace("-",""))
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    #automatically goes to today's slate of NBA games
+    driver.get("https://www.espn.com/nba/scoreboard/_/date/")
+    content = driver.page_source
+    soup = BeautifulSoup(content,features="html.parser")
+    #figure out why it is picking items with class = things other than "time"
+    timeList = soup.findAll("span", class_="time")
+    print(timeList)
+    pListFinalRef = getTeamsPlay(soup)
+    pListFinal = pListFinalRef[1]
 
+getSchedule()
+print("Hello")
 
-    pass
 
 def getHourlyForecast():
     pass
