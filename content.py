@@ -176,7 +176,7 @@ def getHourlyForecast():
     print(coord)
 
     #read as an online json file
-    response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1] + "&exclude=minutely,daily&appid=f36fe5c31fafd890a879027e3788a9bb")
+    response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1]")
     data = response.json()
     
 
