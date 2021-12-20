@@ -1,4 +1,5 @@
-#remoe unused imports
+#remove unused imports when finished
+#get user input for teams and zipcode
 from datetime import date, timedelta
 #from requests.api import get
 import re
@@ -10,7 +11,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import csv
-import urllib.request
+import json
+from urllib.request import urlopen
+
 
 
 #the 200 means I am allowed to use the information
@@ -38,7 +41,6 @@ def getTeamsPlay(soup,score):
 
         #formats to array of times in string format
         tList =[str(i)[str(i).index(">")+1:str(i).rfind("<")].upper() for i in timeList]
-        print(tList)
         pListFinal = []
         for a in range(1,len(pList),2):
             if (pList[a-1] in teams or pList[a] in teams) and tList[int(a/2)]!="POSTPONED":
@@ -72,7 +74,6 @@ def getScores():
     soup = BeautifulSoup(content,features="html.parser")
     #html code array for score data
     scoreList = soup.findAll("td",class_="total")
-    print(scoreList)
     #builds str array of scores
     sList = []
     for i in scoreList:
@@ -100,7 +101,6 @@ def getScores():
     res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n"
     return res
 
-print(getScores())
 
 def getSchedule():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -136,7 +136,6 @@ def getSchedule():
         res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
     return res
 
-print(getSchedule())
 
 def getHourlyForecast():
     #csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
@@ -153,32 +152,32 @@ def getHourlyForecast():
     left = 0
     middle = int(len(rows)/2)
     right = len(rows)
-    coord = ""
+    #lat,long
+    coord = []
     #checks if csv file is sorted according to zip code and it checks out
     """for r in range(1,len(rows)):
         if int(rows[r][0])<int(rows[r-1][0]):
             print("f")"""
         
-    while(coord==""):
+    while(len(coord)==0):
         if int(zipcode)==int(rows[middle][0]):
-            coord=rows[middle][1]+rows[middle][2]
+            coord.append(rows[middle][1].strip())
+            coord.append(rows[middle][2].strip())
             break
         elif left==right:
-            coord=rows[left][1]+rows[left][2]
+            coord.append(rows[middle][1].strip())
+            coord.append(rows[middle][2].strip())
         elif int(zipcode)<int(rows[middle][0]):
             right = middle
             middle = int((left+right)/2)
         else:
             left = middle
             middle =int((left+right)/2)
-    #formats string coordinates for the link
-    coord = coord.replace(" ",",")
     print(coord)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.get("https://api.weather.gov/points/"+coord)
-    #read as a json file or html and use bSoup
-    
+    #read as an online json file
+    response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1] + "&exclude=minutely,daily&appid=f36fe5c31fafd890a879027e3788a9bb")
+    data = response.json()
     
 
 getHourlyForecast()
