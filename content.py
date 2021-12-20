@@ -12,9 +12,8 @@ import urllib.request
 
 #the 200 means I am allowed to use the information
 print(requests.get("https://www.espn.com/nba/scoreboard/_/date/"))
-#accessible weather sites: weather.com , weatherunderground (the one I will use)
-#non-accessible weather sites: accuweather :(
-print(requests.get("https://www.wunderground.com/hourly/us/pa/warrington/18976"))
+
+
 
 
 #NBA teams for which the user desires score and schedule updates
@@ -112,26 +111,9 @@ def getSchedule():
     return res
 
 def getHourlyForecast():
-    #want to get sunrise and sundown, hourly weather condition (sunny, clear, etc.), temperature, feels like temperature and precipitation chance
-
-    #variables that will later be input from user via email or text, but for now I will test specific inputs
-    country = "us" +"/"
-    state = "pa" + "/"
-    city = "warrington".replace(" ","-") + "/"
-    zipCode = "18976" +"/"
-
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.get("https://www.wunderground.com/hourly/"+country+state+city+zipCode)
-    content = driver.page_source
-    soup = BeautifulSoup(content,features="html.parser")
-    sunriseTime = soup.findAll("span",class_="astro-data sunrise-icon")
-    #first two elements are the am and pm for sunrise and sunset, the other two which are not included are for the moon
-    sunsetTime = soup.findAll("span",class_="astro-data sunset-icon")
-    sunAmPm = soup.findAll("span",class_="ampm")[0:2]
     
-    sunriseStr ="Sunrise at " + str(sunriseTime[0])[str(sunriseTime[0]).index(">")+1:str(sunriseTime[0]).rfind("<")] + " " +str(sunAmPm[0])[str(sunAmPm[0]).index(">")+1:str(sunAmPm[0]).rfind("<")] + "\t"
-    sunsetStr="Sunset at " + str(sunsetTime[0])[str(sunsetTime[0]).index(">")+1:str(sunsetTime[0]).rfind("<")] + " " + str(sunAmPm[1])[str(sunAmPm[1]).index(">")+1:str(sunAmPm[1]).rfind("<")] + "\n\n"
-    print(sunriseStr+sunsetStr)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver.get("https://api.weather.gov/points/")
     
     
 
