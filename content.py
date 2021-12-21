@@ -194,7 +194,6 @@ def getHourlyForecast():
 	currentWindSp = data["current"]["wind_speed"]
 	#formats string evenly
 	res = "Sunrise: " + sunrise + " "*(49-len("Sunrise: " + sunrise)) + "Sunset: " +sunset + "\nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + " "*(49-len("Current Temperature: " + str(currentTemp)+ " degrees Fahrenheit")) + "Feels like: " +str(currentFeel) +" degrees Farenheit\nCurrent condition: " + currentDesc + " "*(49-len("Current condition: " + currentDesc)) +"UV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
-	print(res)
 	#program starts running at  8:05 am and gives the current forecast and hourly forecast for 9 am - 11 pm that day
 	#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 13 hours
 	#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
@@ -214,7 +213,7 @@ def getHourlyForecast():
 	return res
 	
 
-getHourlyForecast()
+print(getHourlyForecast())
 
 if __name__ == '__main__':
 	pass
