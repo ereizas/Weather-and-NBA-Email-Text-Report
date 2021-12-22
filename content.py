@@ -1,18 +1,15 @@
 #remove unused imports when finished
 #get user input for teams and zipcode
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 import time
 #from requests.api import get
-import re
 from requests.api import get
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-import pandas as pd
 import requests
 import csv
-import json
 from urllib.request import urlopen
 
 
@@ -89,7 +86,6 @@ def getScores():
 	#gets the desired information in same length arrays that match by index
 	pListFinalRef = getTeamsPlay(soup,True)
 	pListFinal = pListFinalRef[1]
-	print(sList)
 	sListFinal = [sList[pListFinalRef[0].index(b)] for b in pListFinal]
 	
 	res = "Yesterday's Scores: \n"
@@ -99,15 +95,17 @@ def getScores():
 		elif int(sListFinal[c-1])<int(sListFinal[c]):
 			res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c].upper() + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
 		else:
-			res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + " POSTPONED\n"
-	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n"
+			res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + " POSTPONED\n\n"
+	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
 	return res
 
+#print(getScores())
 
 def getSchedule():
 	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 	#automatically goes to today's slate of NBA games
-	driver.get("https://www.espn.com/nba/scoreboard/_/date/")
+	today = str(date.today()).replace("-","")
+	driver.get("https://www.espn.com/nba/scoreboard/_/date/"+today)
 	content = driver.page_source
 	soup = BeautifulSoup(content,features="html.parser")
 	
@@ -136,8 +134,9 @@ def getSchedule():
 	res = "Today's Slate: \n"
 	for b in range(1,len(pListFinal),2):
 		res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
-	return res
+	return res + "\n\n\n\n\n"
 
+#print(getSchedule())
 
 def getHourlyForecast():
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
@@ -177,7 +176,6 @@ def getHourlyForecast():
 		else:
 			left = middle
 			middle =int((left+right)/2)
-	print(coord)
 
 	#read as an online json file
 	#since the api code is private I have a filler var for it
@@ -185,15 +183,16 @@ def getHourlyForecast():
 	#PUT IN API CODE TO TEST
 	response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1] + "&units=imperial&exclude=minutely,daily&appid="+apiCodeFiller)
 	data = response.json()
-	sunrise = time.strftime("%H:%M %p", time.localtime((int(data["current"]["sunrise"]))))
-	sunset = time.strftime("%H:%M %p", time.localtime((int(data["current"]["sunset"]))))
+	print(data)
+	sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
+	sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
 	currentTemp = int(data["current"]["temp"])
 	currentFeel = int(data["current"]["feels_like"])
 	currentUVI = data["current"]["uvi"]
 	currentDesc = data["current"]["weather"][0]["description"]
 	currentWindSp = data["current"]["wind_speed"]
 	#formats string evenly
-	res = "Sunrise: " + sunrise + " "*(49-len("Sunrise: " + sunrise)) + "Sunset: " +sunset + "\nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + " "*(49-len("Current Temperature: " + str(currentTemp)+ " degrees Fahrenheit")) + "Feels like: " +str(currentFeel) +" degrees Farenheit\nCurrent condition: " + currentDesc + " "*(49-len("Current condition: " + currentDesc)) +"UV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
+	res = "Sunrise & Sunset:\nSunrise: " + sunrise + " "*(49-len("Sunrise: " + sunrise)) + "Sunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + " "*(49-len("Current Temperature: " + str(currentTemp)+ " degrees Fahrenheit")) + "Feels like: " +str(currentFeel) +" degrees Farenheit\nCurrent condition: " + currentDesc + " "*(49-len("Current condition: " + currentDesc)) +"UV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
 	#program starts running at  8:05 am and gives the current forecast and hourly forecast for 9 am - 11 pm that day
 	#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 13 hours
 	#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
@@ -205,13 +204,12 @@ def getHourlyForecast():
 	windSpArr = [str(data["hourly"][i]["wind_speed"]) + " mph" for i in range(13)]
 	
 	for i in range(13):
-		res += "\033[1m"+time.strftime("%H:%M %p", time.localtime((int(data["hourly"][i]["dt"])))) + '\033[0m\n'
+		res += time.strftime("%H:%M", time.localtime(int(data["hourly"][i]["dt"]))) + '\n'
 		res+="Temperature: " + tempArr[i] + " "*(42-len("Temperature " + tempArr[i])) + "Feels like: " + feelArr[i] + "\n"
 		res+="Weather: " + condArr[i] + " "*(43-len("Weather: " + condArr[i])) + "Chance of precipitation: " + percPrecArr[i] + "\n"
 		res+="UV index: " + str(uviArr[i]) + " "*(43-len("UV index: " + str(uviArr[i]))) + "Wind speed: " + windSpArr[i] + "\n\n"
 	
 	return res
-	
 
 print(getHourlyForecast())
 
