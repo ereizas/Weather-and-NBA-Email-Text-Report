@@ -1,5 +1,4 @@
 class emailGUI():
-
     def __init__(self,root):
         pass #build GUI
 

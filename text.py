@@ -1,6 +1,11 @@
+import content
 class text:
     def __init__(self):
-        pass
+        self.content = {'score' : {'include':True,'content':content.getScores()},
+        'schedule':{'include':True,'content':content.getSchedule()},
+        'weather':{'include':True,'content':content.getHourlyForecast()}}
+
+        
 
     def sendText(self):
         pass

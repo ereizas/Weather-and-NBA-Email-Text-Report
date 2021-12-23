@@ -91,11 +91,9 @@ def getScores():
 	res = "Yesterday's Scores: \n"
 	for c in range(1,len(pListFinal),2):
 		if int(sListFinal[c-1])>int(sListFinal[c]):
-			res += pListFinal[c-1].upper() + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
+			res += pListFinal[c-1]+" beat " + pListFinal[c] +' '+ sListFinal[c-1] + "-" + sListFinal[c] +"\n\n"
 		elif int(sListFinal[c-1])<int(sListFinal[c]):
-			res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c].upper() + "\n" +sListFinal[c-1] + " "*(32 - len(sListFinal[c-1])) + sListFinal[c] +"\n\n"
-		else:
-			res += pListFinal[c-1] + " " *(32 - len(pListFinal[c-1])) + pListFinal[c] + " POSTPONED\n\n"
+			res += pListFinal[c] + " beat " + pListFinal[c-1] +' '+ sListFinal[c] + "-" + sListFinal[c-1] +"\n\n"
 	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
 	return res
 
@@ -149,7 +147,7 @@ def getHourlyForecast():
 	rows = rows[1:]
 	file.close()
 	
-	#to be replaced by user's zipcode
+	#to be replaced by array of user's desired zipcodes
 	zipcode = "18976"
 
 	left = 0
@@ -181,9 +179,8 @@ def getHourlyForecast():
 	#since the api code is private I have a filler var for it
 	apiCodeFiller = ""
 	#PUT IN API CODE TO TEST
-	response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1] + "&units=imperial&exclude=minutely,daily&appid="+apiCodeFiller)
+	response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + coord[0] + "&lon=" + coord[1] + "&units=imperial&exclude=minutely,daily&appid="+""+apiCodeFiller)
 	data = response.json()
-	print(data)
 	sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 	sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
 	currentTemp = int(data["current"]["temp"])
@@ -192,26 +189,26 @@ def getHourlyForecast():
 	currentDesc = data["current"]["weather"][0]["description"]
 	currentWindSp = data["current"]["wind_speed"]
 	#formats string evenly
-	res = "Sunrise & Sunset:\nSunrise: " + sunrise + " "*(49-len("Sunrise: " + sunrise)) + "Sunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + " "*(49-len("Current Temperature: " + str(currentTemp)+ " degrees Fahrenheit")) + "Feels like: " +str(currentFeel) +" degrees Farenheit\nCurrent condition: " + currentDesc + " "*(49-len("Current condition: " + currentDesc)) +"UV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
+	res = "Weather for today: \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
 	#program starts running at  8:05 am and gives the current forecast and hourly forecast for 9 am - 11 pm that day
-	#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 13 hours
+	#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 14 hours
 	#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
-	tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(13)]
-	feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Fahrenheit" for i in range(13)]
-	percPrecArr = [str(100*data["hourly"][i]["pop"]) + "%" for i in range(13)]
-	condArr=[data["hourly"][i]["weather"][0]["description"] for i in range(13)]
-	uviArr=[data["hourly"][i]["uvi"] for i in range(13)]
-	windSpArr = [str(data["hourly"][i]["wind_speed"]) + " mph" for i in range(13)]
+	tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(14)]
+	feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Fahrenheit" for i in range(14)]
+	percPrecArr = [str(100*data["hourly"][i]["pop"]) + "%" for i in range(14)]
+	condArr=[data["hourly"][i]["weather"][0]["description"] for i in range(14)]
+	uviArr=[data["hourly"][i]["uvi"] for i in range(14)]
+	windSpArr = [str(data["hourly"][i]["wind_speed"]) + " mph" for i in range(14)]
 	
-	for i in range(13):
+	for i in range(14):
 		res += time.strftime("%H:%M", time.localtime(int(data["hourly"][i]["dt"]))) + '\n'
-		res+="Temperature: " + tempArr[i] + " "*(42-len("Temperature " + tempArr[i])) + "Feels like: " + feelArr[i] + "\n"
-		res+="Weather: " + condArr[i] + " "*(43-len("Weather: " + condArr[i])) + "Chance of precipitation: " + percPrecArr[i] + "\n"
-		res+="UV index: " + str(uviArr[i]) + " "*(43-len("UV index: " + str(uviArr[i]))) + "Wind speed: " + windSpArr[i] + "\n\n"
+		res+="Temperature: " + tempArr[i] + "\nFeels like: " + feelArr[i] + "\n"
+		res+="Weather: " + condArr[i] + "\nChance of precipitation: " + percPrecArr[i] + "\n"
+		res+="UV index: " + str(uviArr[i]) + "\nWind speed: " + windSpArr[i] + "\n\n"
 	
 	return res
 
-print(getHourlyForecast())
+#print(getHourlyForecast())
 
 if __name__ == '__main__':
 	pass
