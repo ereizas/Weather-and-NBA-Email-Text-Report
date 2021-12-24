@@ -2,35 +2,31 @@ import content
 import yagmail
 from datetime import date
 #DO NOT LEAVE YOUR USER AND PASSWORD INFO HERE
-
+#ENTER AN EMAIL FOR RECIPIENT TESTING
 
 class email1:
-    def __init__(self):
-        #score and schedule set to false for faster run time while testing format()
+    """def __init__(self):
         self.content = {'score' : {'include':True,'content':content.getScores()},
         'schedule':{'include':True,'content':content.getSchedule()},
         'weather':{'include':True,'content':content.getHourlyForecast()}}
-
-        self.recipients = ['']
+        #enter an email
+        self.recipient = ['']
+        #enter email that was set up for this
+        self.senderInfo = {'email':"",'password':'^'}"""
         
+
+    def __init__(self,includeScore,includeSchedule,includeWeather,teams, zipcodes,recipient):
+        self.content = {'score' : {'include':includeScore,'content':content.getScores(teams)},
+        'schedule':{'include':includeSchedule,'content':content.getSchedule(teams)},
+        'weather':{'include':includeWeather,'content':content.getHourlyForecast(zipcodes)}}
+        self.recipient = '' #recipient
         self.senderInfo = {'email':"",'password':''}
-        pass
 
     def sendEmail(self):
         yag = yagmail.SMTP(self.senderInfo['email'],password = self.senderInfo['password'])
         for recipient in self.recipients:
             #change contents later
             yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = email1().format())
-
-    """sslPort = 465
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", sslPort, context=context) as server:
-            server.login("", self.senderInfo["password"])
-            for recipient in self.recipients:
-                server.sendmail("", recipient, email1().format(),Subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n")"""
-
-        
-
 
     def format(self):
         text = ""
@@ -44,7 +40,8 @@ class email1:
 
 
 if __name__== '__main__':
-    em = email1()
+    #em = email1(True,True,True,'')
     #with open('WANR Plain Text Test','w',encoding = 'utf-8') as f:
        #f.write(em.format())
-    em.sendEmail()
+    #em.sendEmail()
+    pass

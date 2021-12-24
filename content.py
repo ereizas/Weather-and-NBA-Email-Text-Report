@@ -17,16 +17,8 @@ from urllib.request import urlopen
 #the 200 means I am allowed to use the information
 print(requests.get("https://www.espn.com/nba/scoreboard/_/date/"))
 
-
-
-
-#NBA teams for which the user desires score and schedule updates
-#array is added to via gui, text or email
-#sample teams used to test algorithm, clear this later
-teams = ["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]
-
 #function within the primary functions getScores() and getSchedule()
-def getTeamsPlay(soup,score):
+def getTeamsPlay(soup,score,teams):
 	#finds the html code for the names of teams played and their scores in separate arrays
 	playedList = soup.findAll("span",class_="sb-team-short")
 	#converts all teams to string format in an array
@@ -59,7 +51,7 @@ def getTeamsPlay(soup,score):
 	return arr
 
 #check for what happens with postponed games
-def getScores():
+def getScores(teams):
 	#formats date for the link
 	yesterday = str(date.today()-timedelta(days = 1)).replace("-","")
 
@@ -84,7 +76,7 @@ def getScores():
 
 
 	#gets the desired information in same length arrays that match by index
-	pListFinalRef = getTeamsPlay(soup,True)
+	pListFinalRef = getTeamsPlay(soup,True,teams)
 	pListFinal = pListFinalRef[1]
 	sListFinal = [sList[pListFinalRef[0].index(b)] for b in pListFinal]
 	
@@ -97,9 +89,9 @@ def getScores():
 	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
 	return res
 
-#print(getScores())
+#print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
-def getSchedule():
+def getSchedule(teams):
 	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 	#automatically goes to today's slate of NBA games
 	today = str(date.today()).replace("-","")
@@ -118,7 +110,7 @@ def getSchedule():
 	tList =[str(i)[str(i).index(">")+1:str(i).rfind("<")].upper() for i in timeList]
 
 	#same procedure as when done in getScores() function
-	pListFinalRef = getTeamsPlay(soup,False)
+	pListFinalRef = getTeamsPlay(soup,False,teams)
 	pListFinal = pListFinalRef[1]
 
 
@@ -134,9 +126,9 @@ def getSchedule():
 		res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
 	return res + "\n\n\n\n\n"
 
-#print(getSchedule())
+#print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
-def getHourlyForecast():
+def getHourlyForecast(zipcodes):
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
 	file = open("ZIP,LAT,LNG.csv")
 	csvreader = csv.reader(file)
@@ -146,25 +138,19 @@ def getHourlyForecast():
 	#removes the first line
 	rows = rows[1:]
 	file.close()
-	
-	#to be replaced by array of user's desired zipcodes
-	zipcode = ["18976","19122"]
 
-	
-	#lat,long for each zip code
-	coord = [[] for i in zipcode]
+	coord = [[] for i in zipcodes]
 	#checks if csv file is sorted according to zip code and it checks out
 	"""for r in range(1,len(rows)):
 		if int(rows[r][0])<int(rows[r-1][0]):
 			print("f")"""
-	print(coord)
 	
-	for z in range(len(zipcode)):
+	for z in range(len(zipcodes)):
 		left = 0
 		middle = int(len(rows)/2)
 		right = len(rows)
 		while(coord[z]==[]):
-			if int(zipcode[z])==int(rows[middle][0]):
+			if int(zipcodes[z])==int(rows[middle][0]):
 				coord[z].append(rows[middle][1].strip())
 				coord[z].append(rows[middle][2].strip())
 				break
@@ -172,13 +158,12 @@ def getHourlyForecast():
 				coord[z].append(rows[middle][1].strip())
 				coord[z].append(rows[middle][2].strip())
 				break
-			elif int(zipcode[z])<int(rows[middle][0]):
+			elif int(zipcodes[z])<int(rows[middle][0]):
 				right = middle
 				middle = int((left+right)/2)
 			else:
 				left = middle
 				middle =int((left+right)/2)
-	print(coord)
 	#read as an online json file
 	#since the api code is private I have a filler var for it
 	apiCodeFiller = ""
@@ -195,7 +180,7 @@ def getHourlyForecast():
 		currentDesc = data["current"]["weather"][0]["description"]
 		currentWindSp = data["current"]["wind_speed"]
 		#formats string evenly
-		res += "Weather for " + zipcode[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
+		res += "Weather for zipcode " + zipcodes[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
 		#program starts running at  8:05 am and gives the current forecast and hourly forecast for 9 am - 11 pm that day
 		#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 14 hours
 		#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
@@ -214,7 +199,7 @@ def getHourlyForecast():
 		res += "\n\n\n"
 	return res
 
-print(getHourlyForecast())
+print(getHourlyForecast(["18976","19122"]))
 
 if __name__ == '__main__':
 	pass
