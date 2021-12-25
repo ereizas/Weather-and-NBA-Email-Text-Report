@@ -132,6 +132,7 @@ def getHourlyForecast(zipcodes):
 	res=""
 	for c in coord:
 		apiCodeFiller = ""
+		#INSERT API CODE FROM OPEN WEATHER API AFTER SIGNING UP AND WAITING A FEW HOURS (IF YOU HAVE A NEW ACCOUNT) AND THEN RUN
 		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units=imperial&exclude=minutely,daily&appid="+""+apiCodeFiller)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
