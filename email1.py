@@ -11,6 +11,7 @@ class email1:
         #format of user data
         self.recipients = dict()
         #self.recipients = []
+        #ENTER CORRESPONDING INFO FOR EMAIL YOU PLAN TO SET UP TO SEND INFO
         self.senderInfo = {'email':"",'password':''}
         self.rList = [recipient for recipient in self.recipients]
 
