@@ -1,141 +1,95 @@
 #remove unused imports when finished
-#get user input for teams and zipcode
 from datetime import date, timedelta
 import time
 #from requests.api import get
-from requests.api import get
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
 import requests
 import csv
 
-#the 200 means I am allowed to use the information
-print(requests.get("https://www.espn.com/nba/scoreboard/_/date/"))
-
-
-
-#function within the primary functions getScores() and getSchedule()
-def getTeamsPlay(soup,score,teams):
-	#finds the html code for the names of teams played and their scores in separate arrays
-	playedList = soup.findAll("span",class_="sb-team-short")
-	#converts all teams to string format in an array
-	pList = [str(i)[str(i).index(">")+1:str(i).rfind("<")] for i in playedList]
-	if score:
-		timeList = soup.find_all(lambda x:
-		(x.name == 'span' or x.name=="th") and
-		('time' in x.get('class', []) or 'date-time' in x.get('class', [])) and
-		not 'cscore_time' in x['class'] and not 'date_time' in x.get('data-behavior',[]))
-
-		#formats to array of times in string format
-		tList =[str(i)[str(i).index(">")+1:str(i).rfind("<")].upper() for i in timeList]
-		pListFinal = []
-		for a in range(1,len(pList),2):
-			if (pList[a-1] in teams or pList[a] in teams) and tList[int(a/2)]!="POSTPONED":
-				pListFinal.append(pList[a-1])
-				pListFinal.append(pList[a])
-	
-	else:
-		#picks user's teams that played and the opposing team that day
-		pListFinal = []
-		for a in range(1,len(pList),2):
-			if pList[a-1] in teams or pList[a] in teams:
-				pListFinal.append(pList[a-1])
-				pListFinal.append(pList[a])
-	#creates an array with two arrays, with one for all teams playing/played and the other for just the ones of interest
-	arr=[]
-	arr.append(pList)
-	arr.append(pListFinal)
-	return arr
-
-#might want to switch to api for faster run time and less issues with the site's access
 def getScores(teams):
-	"""yesterday = str(date.today()-timedelta(days = 1))
+	yesterday = str(date.today()-timedelta(days = 1))
 	url = "https://www.balldontlie.io/api/v1/games?start_date=" +yesterday + "&end_date=" + yesterday
 	response = requests.get(url)
-	print(response)"""
-	
-	#formats date for the link
-	yesterday = str(date.today()-timedelta(days = 1)).replace("-","")
-	
+	data=response.json()
+	teamsPlayed = []
+	scores = []
+	#makes sure to not crash when there were no games played the day before
+	if data['data']!=[]:
+		#goes through all elememts since the two team are in separate dictionaries in the larger dictionary for each game
+		for a in range(len(data["data"])):
+			tempTeamPair = []
+			tempScorePair = []
+			for b in data['data'][a]:
+				if b=='home_team_score' and data['data'][a][b]==0:
+					pass
+				elif b=='visitor_team_score' and data['data'][a][b]==0:
+					pass
+				elif b == "home_team":
+					tempTeamPair.append(data['data'][a]['home_team']['name'])
+				elif b == 'home_team_score':
+					tempScorePair.append(data['data'][a][b])
+				elif b == "visitor_team":
+					tempTeamPair.append(data['data'][a]['visitor_team']['name'])
+				elif b == "visitor_team_score":
+					tempScorePair.append(data['data'][a][b])
+					if (tempTeamPair[0] in teams or tempTeamPair[1] in teams) :
+						teamsPlayed.append(tempTeamPair[0])
+						teamsPlayed.append(tempTeamPair[1])
+						scores.append(tempScorePair[0])
+						scores.append(tempScorePair[1])
 
-	#makes the default Google Chrome
-	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
-	#data I want is in <div id="events" class>
-	driver.get("https://www.espn.com/nba/scoreboard/_/date/"+yesterday)
-	content = driver.page_source
-	soup = BeautifulSoup(content,features="html.parser")
-	#html code array for score data
-	scoreList = soup.findAll("td",class_="total")
-	#builds str array of scores
-	sList = []
-	for i in scoreList:
-		tempStr = ""
-		#find("n") skips to later index that is before desired data for faster runtime
-		for j in range(len(str(i)[str(i).find("n")]),len(str(i))):
-			if(str(i)[j].isnumeric()):
-				tempStr+=str(i)[j]
-		sList.append(tempStr)
-
-
-	#gets the desired information in same length arrays that match by index
-	pListFinalRef = getTeamsPlay(soup,True,teams)
-	pListFinal = pListFinalRef[1]
-	sListFinal = [sList[pListFinalRef[0].index(b)] for b in pListFinal]
-	
-	res = "Yesterday's Scores: \n"
-	for c in range(1,len(pListFinal),2):
-		if int(sListFinal[c-1])>int(sListFinal[c]):
-			res += pListFinal[c-1]+" beat " + pListFinal[c] +' '+ sListFinal[c-1] + "-" + sListFinal[c] +"\n\n"
-		elif int(sListFinal[c-1])<int(sListFinal[c]):
-			res += pListFinal[c] + " beat " + pListFinal[c-1] +' '+ sListFinal[c] + "-" + sListFinal[c-1] +"\n\n"
-	if res == "Yesterday's Scores: \n":
-		return "*Your teams did not play any games yesterday.\n\n\n\n\n"
-	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
-	return res
+		res = "Yesterday's Scores: \n"
+		for t in range(1,len(teamsPlayed),2):
+			if scores[t-1]>scores[t]:
+				res += teams[t-1] + " beat " + teams[t] + " " + str(scores[t-1]) + "-" + str(scores[t]) + "\n\n"
+			elif scores[t]>scores[t-1]:
+				res += teams[t] + " beat " + teams[t-1] + " " + str(scores[t]) + "-" + str(scores[t-1]) + "\n\n"
+		if res =="Yesterday's Scores: \n":
+			return "*Your teams did not play any games yesterday.\n\n\n\n\n"
+		res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
+		return res
+	else:
+		return "*No NBA games were played yesterday.\n\n\n\n\n"
 
 print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getSchedule(teams):
-	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-	#automatically goes to today's slate of NBA games
-	today = str(date.today()).replace("-","")
-	driver.get("https://www.espn.com/nba/scoreboard/_/date/"+today)
-	content = driver.page_source
-	soup = BeautifulSoup(content,features="html.parser")
-	
-	#the lambda function strictly matches those with class ="time" and if games are postponed it does the same but for the corresponding header
-	#credit to Nuno Andre on https://stackoverflow.com/questions/14496860/how-to-beautiful-soup-bs4-match-just-one-and-only-one-css-class#14516768 for the lambda function
-	timeList = soup.find_all(lambda x:
-	(x.name == 'span' or x.name=="th") and
-	('time' in x.get('class', []) or 'date-time' in x.get('class', [])) and
-	not 'cscore_time' in x['class'] and not 'date_time' in x.get('data-behavior',[]))
+	url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
+	response = requests.get(url)
+	data=response.json()
+	teamsPlaying = []
+	playTimes = []
 
-	#formats to array of times in string format
-	tList =[str(i)[str(i).index(">")+1:str(i).rfind("<")].upper() for i in timeList]
+	if data['data']!=[]:
+		for a in range(len(data["data"])):
+			tempTeamPair = []
+			timeTemp = ''
+			for b in data['data'][a]:
+				if b=='home_team_score' and data['data'][a][b]==0:
+					pass
+				elif b=='visitor_team_score' and data['data'][a][b]==0:
+					pass
+				elif b == "home_team":
+					tempTeamPair.append(data['data'][a]['home_team']['name'])
+				elif b =="status":
+					timeTemp = data['data'][a]['status']
+				elif b == "visitor_team":
+					tempTeamPair.append(data['data'][a]['visitor_team']['name'])
+					if (tempTeamPair[0] in teams or tempTeamPair[1] in teams) :
+						teamsPlaying.append(tempTeamPair[0])
+						teamsPlaying.append(tempTeamPair[1])
+						playTimes.append(timeTemp)
 
-	#same procedure as when done in getScores() function
-	pListFinalRef = getTeamsPlay(soup,False,teams)
-	pListFinal = pListFinalRef[1]
+		res = "Today's Slate: \n"
+		for s in range(1,len(teamsPlaying),2):
+			res+= teamsPlaying[s-1] + " at " + teamsPlaying[s] + " " + playTimes[int(s/2)] + "\n\n"
+		if res == "Today's Slate: \n":
+			return "*Your teams are not playing any games today.\n\n\n\n\n"
+		return res + "\n\n\n\n\n"
+						
+	else:
+		return "*There are no NBA Games scheduled for today.\n\n\n\n\n"
 
-
-	tListFinal = []
-	#accounts for the fact that the number teams playing are double the amount of game times for the day
-	for a in range(1,len(pListFinalRef[0]),2):
-		if pListFinalRef[0][a-1] in teams or pListFinalRef[0][a] in teams:
-			tListFinal.append(tList[int(a/2)])
-	
-
-	res = "Today's Slate: \n"
-	for b in range(1,len(pListFinal),2):
-		res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
-	if res == "Today's Slate: \n":
-		return "Your teams are not playing any games today.\n\n\n\n\n"
-	return res + "\n\n\n\n\n"
-
-#print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getHourlyForecast(zipcodes):
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
@@ -149,7 +103,7 @@ def getHourlyForecast(zipcodes):
 	file.close()
 
 	coord = [[] for i in zipcodes]
-	#checks if csv file is sorted according to zip code and it checks out
+	#checks if csv file is sorted according to zip code integer order from smallest to largest and it is confirmed true
 	"""for r in range(1,len(rows)):
 		if int(rows[r][0])<int(rows[r-1][0]):
 			print("f")"""
@@ -176,7 +130,7 @@ def getHourlyForecast(zipcodes):
 	#read as an online json file
 	#since the api code is private I have a filler var for it
 	apiCodeFiller = ""
-	#PUT IN API CODE TO TEST
+	#PUT IN API CODE TO TEST AND RUN
 	res=""
 	for c in coord:
 		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units=imperial&exclude=minutely,daily&appid="+""+apiCodeFiller)
@@ -190,8 +144,7 @@ def getHourlyForecast(zipcodes):
 		currentWindSp = data["current"]["wind_speed"]
 		#formats string evenly
 		res += "Weather for zipcode " + zipcodes[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
-		#program starts running at  8:05 am and gives the current forecast and hourly forecast for 9 am - 11 pm that day
-		#if the user wants it sent at a different time, it will give the current forecast and hourly forecast for the next 14 hours
+		#program starts running at  8:00 am and gives the current forecast for the day
 		#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
 		tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(14)]
 		feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Fahrenheit" for i in range(14)]
@@ -208,7 +161,7 @@ def getHourlyForecast(zipcodes):
 		res += "\n\n\n"
 	return res
 
-#print(getHourlyForecast(["18976","19122"]))
+print(getHourlyForecast(["18976","19122"]))
 
 if __name__ == '__main__':
 	pass
