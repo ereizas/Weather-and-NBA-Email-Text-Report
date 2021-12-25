@@ -28,8 +28,7 @@ class emailGUI():
 		#loads configuration
 		d = dict()
 		with open('wanbarConfig.json') as file:
-			config = json.load(file)
-			d = config
+			d = json.load(file)
 		self.__email.recipients = d
 		print(self.__email.recipients)
 
@@ -107,6 +106,7 @@ class emailGUI():
 	def buildGuiContents(self, master, scoreVar, scheduleVar, weatherVar, team,teams,zipcode,zipcodes):
 		header = ttk.Label(master,text = 'Content Selection: ', style = "Header.TLabel")
 		spacer_frame = ttk.Frame(master)
+		spacerHorz = ttk.Frame(master)
 		scoreCheckbox = ttk.Checkbutton(master,text="NBA Scores from Yesterday",variable=scoreVar)
 		scheduleCheckbox = ttk.Checkbutton(master,text="NBA Schedule for Today", variable = scheduleVar)
 		weatherCheckbox= ttk.Checkbutton(master,text="Hourly Weather Forecast",variable=weatherVar)
@@ -116,7 +116,7 @@ class emailGUI():
 		'Magic','Mavericks','Nets','Nuggets','Pacers','Pelicans','Pistons','Raptors','Rockets','Spurs','Suns','Thunder','Timberwolves','Trail Blazers','Warriors','Wizards']
 		allTeamScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
 		#change row later depending on what you add
-		allTeamScrollbar.grid(row = 5, column =1, sticky = N+S+W+E)
+		allTeamScrollbar.grid(row = 1, column =3, sticky = N+S+W+E)
 		allTeamListbox = Listbox(master, selectmode='multiple', width=40,height =5)
 		for t in range(len(allTeams)):
 			allTeamListbox.insert(t,allTeams[t])
@@ -125,23 +125,27 @@ class emailGUI():
 
 		#entering/removing preferred teams
 		teamEntryLabel = ttk.Label(master,text='Enter a team name as shown above')
+		allTeamLabel = ttk.Label(master,text='All NBA Teams',style="Header.TLabel")
 		self.teamEntry = ttk.Entry(master,width=40)
 		teamScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
-		teamScrollbar.grid(row = 14, column =1, sticky = N+S+W+E)
+		teamScrollbar.grid(row = 7, column =3, sticky = N+S+W+E)
 		self.teamListbox = Listbox(master, listvariable=teams, selectmode='multiple', width=40,height =5)
 		self.teamListbox.configure(yscrollcommand=teamScrollbar.set)
 		teamScrollbar.config(command=self.teamListbox.yview())
 		addTeamButton = ttk.Button(master, text='Add NBA Team', command = self.addTeam)
 		removeTeamButton = ttk.Button(master,text='Remove Selected Teams',command = lambda: self.removeTeams(self.teamListbox.curselection()))
+		prefNBATeamLabel = ttk.Label(master,text='Preferred NBA Teams',style = "Header.TLabel")
 
 		#entering of preferred zipcodes
+		zipEntryLabel = ttk.Label(master,text = "Enter a 5 digit zipcode:")
 		self.zipcodeEntry = ttk.Entry(master,width=40,textvariable=zipcode)
 		zipcodeScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
-		zipcodeScrollbar.grid(row = 13, column =1, sticky = N+S+W+E)
+		zipcodeScrollbar.grid(row = 4, column =5, sticky = N+S+W+E)
 		self.zipcodeListbox = Listbox(master, listvariable=zipcodes, selectmode='multiple', width=40,height =5)
 		self.zipcodeListbox.configure(yscrollcommand=zipcodeScrollbar.set)
 		zipcodeScrollbar.config(command=self.zipcodeListbox.yview())
 		addZipButton = ttk.Button(master, text='Add Zipcode', command = self.addZip)
+		prefZipLabel = ttk.Label(master,text= "Preferred Zipcodes",style="Header.TLabel")
 		removeZipButton = ttk.Button(master,text='Remove Selected Zipcodes',command = lambda: self.removeZips(self.zipcodeListbox.curselection()))
 
 		#placement see whether a spacer is necessary
@@ -150,17 +154,26 @@ class emailGUI():
 		scheduleCheckbox.grid(row=2,column=0)
 		weatherCheckbox.grid(row=3,column=0)
 
-		allTeamListbox.grid(row=5,column=0)
-		teamEntryLabel.grid(row=6,column=0)
-		self.teamEntry.grid(row=7,column=0)
-		addTeamButton.grid(row=8,column=0)
-		self.teamListbox.grid(row=9,column=0)
-		removeTeamButton.grid(row=10,column=0)
+		spacerHorz.grid(row=0,column=1,padx=5,pady=50)
 
-		self.zipcodeEntry.grid(row=12,column=0)
-		addZipButton.grid(row=13,column=0)
-		self.zipcodeListbox.grid(row=14,column=0)
-		removeZipButton.grid(row=15,column=0)
+		allTeamLabel.grid(row=0,column=2)
+		allTeamListbox.grid(row=1,column=2)
+		spacer_frame.grid(row=2,column=5,pady=2)
+		teamEntryLabel.grid(row=3,column=2)
+		self.teamEntry.grid(row=4,column=2)
+		addTeamButton.grid(row=5,column=2)
+		prefNBATeamLabel.grid(row=6,column=2)
+		self.teamListbox.grid(row=7,column=2)
+		removeTeamButton.grid(row=8,column=2)
+
+		spacerHorz.grid(row=0,column=3,padx=5,pady=50)
+
+		zipEntryLabel.grid(row=0,column=4)
+		self.zipcodeEntry.grid(row=1,column=4)
+		addZipButton.grid(row=2,column=4)
+		prefZipLabel.grid(row=3,column=4)
+		self.zipcodeListbox.grid(row=4,column=4)
+		removeZipButton.grid(row=5,column=4)
 
 	def buildGuiSender(self, master, senderEmailVar,senderPasswordVar):
 		header = ttk.Label(master, text = 'Sender Credentials:', style = 'Header.TLabel')
@@ -178,7 +191,7 @@ class emailGUI():
 
 	def buildGuiControls(self,master):
 		updateButton = ttk.Button(master, text = 'Update Preferences', command = self.updatePreferences)
-		sendButton = ttk.Button(master, text = 'Manual Send/Save', command = self.manualSend)
+		sendButton = ttk.Button(master, text = 'Manual Send', command = self.manualSend)
 		
 		updateButton.grid(row = 0, column = 0, padx = 5, pady = 5)
 		sendButton.grid(row = 0, column = 1, padx = 5, pady = 5)
@@ -242,29 +255,26 @@ class emailGUI():
 	def manualSend(self):
 		if datetime.time(8,30,0)<=datetime.datetime.now().time()<=datetime.time(9,5,0):
 			self.__email.sendEmail()
-			try:
-				self.saveConfig()
-			except Exception as e:
-				print(e)
+		try:
+			self.saveConfig()
+		except Exception as e:
+			print(e)
 		self.running = False
-	#ran during manualSend
+	
 	def saveConfig(self,filePath='wanbarConfig.json'):
 		config = self.__email.recipients
+		print(config)
 		#appends user info #it works
-		with open(filePath,'r+') as file:
-			for em in config:
-				fileData = json.load(file)
-				fileData.update({em:config[em]})
-				file.seek(0)
-				json.dump(fileData,file,indent=4)
+		with open(filePath,'w') as file:
+			json.dump(config,file,indent=4)
 		
 if __name__== "__main__":
 	#uncomment #root.mainloop() to run admin interface
 	root = Tk()
 	app = emailGUI(root)
-	#root.mainloop()
+	root.mainloop()
 
 	#for sending and ending the program
-	while app.running:
+	"""while app.running:
 		app.manualSend()
-		app.running = False
+		app.running = False"""

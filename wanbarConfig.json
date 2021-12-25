@@ -20,5 +20,42 @@
             "19122",
             "19446"
         ]
+    ],
+    "berkyt@hotmail.com": [
+        [
+            true,
+            true,
+            true
+        ],
+        [
+            "76ers",
+            "Raptors"
+        ],
+        [
+            "18976"
+        ]
+    ],
+    "lafish679@gmail.com": [
+        [
+            false,
+            false,
+            true
+        ],
+        [],
+        [
+            "19446"
+        ]
+    ],
+    "mail4tanechka@gmail.com": [
+        [
+            false,
+            false,
+            true
+        ],
+        [],
+        [
+            "18976"
+        ]
     ]
 }
+   
