@@ -5,43 +5,33 @@ from datetime import date
 #ENTER AN EMAIL FOR RECIPIENT TESTING
 
 class email1:
-    """def __init__(self):
-        self.content = {'score' : {'include':True,'content':content.getScores()},
-        'schedule':{'include':True,'content':content.getSchedule()},
-        'weather':{'include':True,'content':content.getHourlyForecast()}}
-        #enter an email
-        self.recipient = ['']
-        #enter email that was set up for this
-        self.senderInfo = {'email':"",'password':'^'}"""
-        
-
-    def __init__(self,includeScore,includeSchedule,includeWeather,teams, zipcodes,recipient):
-        self.content = {'score' : {'include':includeScore,'content':content.getScores(teams)},
-        'schedule':{'include':includeSchedule,'content':content.getSchedule(teams)},
-        'weather':{'include':includeWeather,'content':content.getHourlyForecast(zipcodes)}}
-        self.recipient = '' #recipient
+    
+    #figure out how to send individualized emails for teams and zipcodes
+    def __init__(self):
+        #format of user data
+        self.recipients = dict()
+        #self.recipients = []
         self.senderInfo = {'email':"",'password':''}
+        self.rList = [recipient for recipient in self.recipients]
 
     def sendEmail(self):
         yag = yagmail.SMTP(self.senderInfo['email'],password = self.senderInfo['password'])
         for recipient in self.recipients:
-            #change contents later
-            yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = email1().format())
+            yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = self.format(recipient))
 
-    def format(self):
+    #individual formatting
+    def format(self,recipient):
         text = ""
-        if self.content['score']['include'] and self.content['score']['content']:
-            text+=self.content['score']['content']
-        if self.content['schedule']['include'] and self.content['schedule']['content']:
-            text+=self.content['schedule']['content']
-        if self.content['weather']['include'] and self.content['weather']['content']:
-            text+=self.content['weather']['content']
+        if self.recipients[recipient][0][0] and content.getScores(self.recipients[recipient][1]):
+            text+=content.getScores(self.recipients[recipient][1])
+        if self.recipients[recipient][0][1] and content.getSchedule(self.recipients[recipient][1]):
+            text+=content.getSchedule(self.recipients[recipient][1])
+        if self.recipients[recipient][0][2] and content.getHourlyForecast(self.recipients[recipient][2]):
+            text+=content.getHourlyForecast(self.recipients[recipient][2])
         return text
 
 
 if __name__== '__main__':
-    #em = email1(True,True,True,'')
-    #with open('WANR Plain Text Test','w',encoding = 'utf-8') as f:
-       #f.write(em.format())
+    #em = email1()
     #em.sendEmail()
     pass

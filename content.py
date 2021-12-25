@@ -10,12 +10,11 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import requests
 import csv
-from urllib.request import urlopen
-
-
 
 #the 200 means I am allowed to use the information
 print(requests.get("https://www.espn.com/nba/scoreboard/_/date/"))
+
+
 
 #function within the primary functions getScores() and getSchedule()
 def getTeamsPlay(soup,score,teams):
@@ -50,10 +49,16 @@ def getTeamsPlay(soup,score,teams):
 	arr.append(pListFinal)
 	return arr
 
-#check for what happens with postponed games
+#might want to switch to api for faster run time and less issues with the site's access
 def getScores(teams):
+	"""yesterday = str(date.today()-timedelta(days = 1))
+	url = "https://www.balldontlie.io/api/v1/games?start_date=" +yesterday + "&end_date=" + yesterday
+	response = requests.get(url)
+	print(response)"""
+	
 	#formats date for the link
 	yesterday = str(date.today()-timedelta(days = 1)).replace("-","")
+	
 
 	#makes the default Google Chrome
 	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -86,10 +91,12 @@ def getScores(teams):
 			res += pListFinal[c-1]+" beat " + pListFinal[c] +' '+ sListFinal[c-1] + "-" + sListFinal[c] +"\n\n"
 		elif int(sListFinal[c-1])<int(sListFinal[c]):
 			res += pListFinal[c] + " beat " + pListFinal[c-1] +' '+ sListFinal[c] + "-" + sListFinal[c-1] +"\n\n"
+	if res == "Yesterday's Scores: \n":
+		return "*Your teams did not play any games yesterday.\n\n\n\n\n"
 	res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
 	return res
 
-#print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getSchedule(teams):
 	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -124,6 +131,8 @@ def getSchedule(teams):
 	res = "Today's Slate: \n"
 	for b in range(1,len(pListFinal),2):
 		res+= pListFinal[b-1] + " at " + pListFinal[b] + " " + tListFinal[int(b/2)] + "\n\n"
+	if res == "Today's Slate: \n":
+		return "Your teams are not playing any games today.\n\n\n\n\n"
 	return res + "\n\n\n\n\n"
 
 #print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
@@ -199,7 +208,7 @@ def getHourlyForecast(zipcodes):
 		res += "\n\n\n"
 	return res
 
-print(getHourlyForecast(["18976","19122"]))
+#print(getHourlyForecast(["18976","19122"]))
 
 if __name__ == '__main__':
 	pass
