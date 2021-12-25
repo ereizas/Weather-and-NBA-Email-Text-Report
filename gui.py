@@ -2,11 +2,15 @@ from tkinter import *
 from tkinter import ttk
 from email1 import email1
 from scheduler import emailScheduler
+import json
+import datetime
 #needs to help choose content, add/remove recipients, keep track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST, and configure sender credentials
 #check boxes for preferred content -> 
 #list of emails -> remove selected w a button, add with a text box and "add" button
 class emailGUI():
 	def __init__(self,root):
+		#bool for whether program is running
+		self.running = True
 		#header/title
 		self.__root = root
 		self.__root.title('NBA and/or Weather Report')
@@ -20,21 +24,27 @@ class emailGUI():
 
 		#GUI list for recipients
 		#later try to make open to users to input email and other info
+		self.__email = email1()
+		#loads configuration
+		d = dict()
+		with open('wanbarConfig.json') as file:
+			config = json.load(file)
+			d = config
+		self.__email.recipients = d
+		print(self.__email.recipients)
+
 		recipientsFrame = ttk.Frame(self.__root)
 		recipientsFrame.pack(padx=5,pady=5)
 		self.addRecipientVar = StringVar()
 		self.recipList = Variable()
 		self.rInd = 0
+		self.addRecipientVar.set('')
+		self.recipList.set(self.__email.rList)
+		
+		
+		
 		#stores all the necessary information for each user
-
 		self.buildGuiRecipients(recipientsFrame,self.addRecipientVar,self.recipList)
-		#gui to schedule delivery time, set to 8 am
-		#scheduleFrame = ttk.Frame(self.__root)
-		#scheduleFrame.pack(padx=5,pady=5)
-
-		#self.hourVar = StringVar()#.set('08')
-		#self.minuteVar = StringVar()#.set('00')
-		#self.buildGuiSchedule(scheduleFrame,self.hourVar,self.minuteVar)
 
 		#gui checkboxes of content
 		contentsFrame = ttk.Frame(self.__root)
@@ -43,7 +53,6 @@ class emailGUI():
 		self.scoreVar = BooleanVar()
 		self.scheduleVar = BooleanVar()
 		self.weatherVar = BooleanVar()
-
 		self.team = StringVar() #add to teams below
 		self.teamList = Variable()
 		self.tInd = 0
@@ -52,49 +61,27 @@ class emailGUI():
 		self.zipcode=StringVar()#add to array below
 		self.zipList = Variable()
 		self.zInd = 0
-		#self.zipcodes=[]
-
+		self.team.set('')
+		self.teamList.set([])
+		self.zipcode.set('')
+		self.zipList.set([])
 		self.buildGuiContents(contentsFrame,self.scoreVar,self.scheduleVar,self.weatherVar,self.team,self.teamList,self.zipcode,self.zipList)
 		#GUI for sender credentials
 		senderFrame = ttk.Frame(self.__root)
 		senderFrame.pack(padx=5,pady=5)
 		self.senderEmailVar = StringVar()
 		self.senderPasswordVar = StringVar()
+		self.senderEmailVar.set(self.__email.senderInfo['email'])
+		self.senderPasswordVar.set(self.__email.senderInfo['password'])
 		self.buildGuiSender(senderFrame,self.senderEmailVar,self.senderPasswordVar)
 		#GUI for controls
 		controlsFrame = ttk.Frame(self.__root)
 		controlsFrame.pack(padx=5,pady=5)
 		self.buildGuiControls(controlsFrame)
 		
-
-		#intialize vars
-		#maybe add args to email1 according to the booleanVars
-		self.__email = email1()
-
-		self.addRecipientVar.set('')
-		self.recipList.set(self.__email.rList)
-
-		#self.hourVar.set('08')
-		#self.minuteVar.set('00')
-
-		#default value of 0
-		self.scoreVar.set(0)
-		self.scheduleVar.set(0)
-		self.weatherVar.set(0)
-		self.team.set('')
-		self.teamList.set([])
-		self.zipcode.set('')
-		self.zipList.set([])
-
-		self.senderEmailVar.set(self.__email.senderInfo['email'])
-		self.senderPasswordVar.set(self.__email.senderInfo['password'])
-
 		#initialize scheduler 
 		self.scheduler = emailScheduler()
 		self.scheduler.start()
-		self.__root.protocol("WM_DELETE_WINDOW",self.shutdown())
-
-	#check the 'build' fxns and change it to only update info when calling updatePreferences
 	
 	def buildGuiRecipients(self,master,addRecipientVar,recipList):
 		#widgets
@@ -116,10 +103,6 @@ class emailGUI():
 		spacer_frame.grid(row=2,column=0,pady=5)
 		self.recipientsListbox.grid(row=3,column=0)
 		removeButton.grid(row=4,column=0)
-
-	#might not want a gui for schedule since I want it constant at 8 am
-	def buildGuiSchedule(self, master, hourVar,minuteVar):
-		pass
 
 	def buildGuiContents(self, master, scoreVar, scheduleVar, weatherVar, team,teams,zipcode,zipcodes):
 		header = ttk.Label(master,text = 'Content Selection: ', style = "Header.TLabel")
@@ -195,7 +178,7 @@ class emailGUI():
 
 	def buildGuiControls(self,master):
 		updateButton = ttk.Button(master, text = 'Update Preferences', command = self.updatePreferences)
-		sendButton = ttk.Button(master, text = 'Manual Send', command = self.manualSend)
+		sendButton = ttk.Button(master, text = 'Manual Send/Save', command = self.manualSend)
 		
 		updateButton.grid(row = 0, column = 0, padx = 5, pady = 5)
 		sendButton.grid(row = 0, column = 1, padx = 5, pady = 5)
@@ -207,16 +190,12 @@ class emailGUI():
 			self.recipientsListbox.insert(self.rInd,newRecip+"")
 			self.recipientsEntry.delete(0,END) #clears entry
 			
-
-
 	def removeRecipients(self,selection):
 		recipList = list(self.recipList.get())
 		for i in reversed(selection):
 			#removes from recipList and the user info dict in the same line
 			self.__email.recipients.pop(recipList.pop(i))
 		self.recipList.set(recipList)
-		print(self.__email.recipients)
-		
 
 	#use insert and an iterator int var
 	def addTeam(self):
@@ -257,19 +236,35 @@ class emailGUI():
 		self.__email.senderInfo = {'email':self.senderEmailVar.get(),'password':self.senderPasswordVar.get()}
 		self.teamListbox.delete(0,END)
 		self.zipcodeListbox.delete(0,END)
-
-	def manualSend(self,):
-		self.__email.sendEmail()
-
-	def shutdown(self):
-		self.scheduler.stop()
-		self.scheduler.join()
-		#uncomment to be able to destroy program
-		#self.__root.destroy()
 		
 
+	#program shuts down after sending emails and saving the info for them
+	def manualSend(self):
+		if datetime.time(8,30,0)<=datetime.datetime.now().time()<=datetime.time(9,5,0):
+			self.__email.sendEmail()
+			try:
+				self.saveConfig()
+			except Exception as e:
+				print(e)
+		self.running = False
+	#ran during manualSend
+	def saveConfig(self,filePath='wanbarConfig.json'):
+		config = self.__email.recipients
+		#appends user info #it works
+		with open(filePath,'r+') as file:
+			for em in config:
+				fileData = json.load(file)
+				fileData.update({em:config[em]})
+				file.seek(0)
+				json.dump(fileData,file,indent=4)
+		
 if __name__== "__main__":
+	#uncomment #root.mainloop() to run admin interface
 	root = Tk()
 	app = emailGUI(root)
-	root.mainloop()
-	
+	#root.mainloop()
+
+	#for sending and ending the program
+	while app.running:
+		app.manualSend()
+		app.running = False

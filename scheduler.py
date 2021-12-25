@@ -25,11 +25,6 @@ class emailScheduler(threading.Thread):
         self.__stop_running.set()
 
 if __name__ == '__main__':
-    """import email1
-    em = email1.email1()
-    scheduler = emailScheduler()
-    scheduler.start()
-    scheduler.scheduleDaily(hour,minute,em.sendEmail())
-    time.sleep(30)
-    scheduler.stop()"""
     pass
+
+

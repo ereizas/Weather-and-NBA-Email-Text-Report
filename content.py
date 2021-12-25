@@ -50,7 +50,7 @@ def getScores(teams):
 	else:
 		return "*No NBA games were played yesterday.\n\n\n\n\n"
 
-print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+#print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getSchedule(teams):
 	url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
@@ -89,7 +89,7 @@ def getSchedule(teams):
 	else:
 		return "*There are no NBA Games scheduled for today.\n\n\n\n\n"
 
-print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+#print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getHourlyForecast(zipcodes):
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
@@ -127,12 +127,11 @@ def getHourlyForecast(zipcodes):
 			else:
 				left = middle
 				middle =int((left+right)/2)
-	#read as an online json file
-	#since the api code is private I have a filler var for it
-	apiCodeFiller = ""
+	#since the api code is private I have a filler var for it to remind me of its place
 	#PUT IN API CODE TO TEST AND RUN
 	res=""
 	for c in coord:
+		apiCodeFiller = ""
 		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units=imperial&exclude=minutely,daily&appid="+""+apiCodeFiller)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
@@ -161,7 +160,7 @@ def getHourlyForecast(zipcodes):
 		res += "\n\n\n"
 	return res
 
-print(getHourlyForecast(["18976","19122"]))
+#print(getHourlyForecast(["18976","19122"]))
 
 if __name__ == '__main__':
 	pass

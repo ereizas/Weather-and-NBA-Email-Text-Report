@@ -14,6 +14,10 @@ class email1:
         self.senderInfo = {'email':"",'password':''}
         self.rList = [recipient for recipient in self.recipients]
 
+    def changeRecipients(self,r):
+        self.recipients=r
+        return self.recipients
+
     def sendEmail(self):
         yag = yagmail.SMTP(self.senderInfo['email'],password = self.senderInfo['password'])
         for recipient in self.recipients:
@@ -32,6 +36,4 @@ class email1:
 
 
 if __name__== '__main__':
-    #em = email1()
-    #em.sendEmail()
     pass
