@@ -40,9 +40,9 @@ def getScores(teams):
 		res = "Yesterday's Scores: \n"
 		for t in range(1,len(teamsPlayed),2):
 			if scores[t-1]>scores[t]:
-				res += teams[t-1] + " beat " + teams[t] + " " + str(scores[t-1]) + "-" + str(scores[t]) + "\n\n"
+				res += teamsPlayed[t-1] + " beat " + teamsPlayed[t] + " " + str(scores[t-1]) + "-" + str(scores[t]) + "\n\n"
 			elif scores[t]>scores[t-1]:
-				res += teams[t] + " beat " + teams[t-1] + " " + str(scores[t]) + "-" + str(scores[t-1]) + "\n\n"
+				res += teamsPlayed[t] + " beat " + teamsPlayed[t-1] + " " + str(scores[t]) + "-" + str(scores[t-1]) + "\n\n"
 		if res =="Yesterday's Scores: \n":
 			return "*Your teams did not play any games yesterday.\n\n\n\n\n"
 		res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
