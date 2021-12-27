@@ -4,9 +4,6 @@ from email1 import email1
 from scheduler import emailScheduler
 import json
 import datetime
-#needs to help choose content, add/remove recipients, keep track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST, and configure sender credentials
-#check boxes for preferred content -> 
-#list of emails -> remove selected w a button, add with a text box and "add" button
 class emailGUI():
 	def __init__(self,root):
 		#bool for whether program is running
@@ -30,7 +27,6 @@ class emailGUI():
 		with open('wanbarConfig.json') as file:
 			d = json.load(file)
 		self.__email.recipients = d
-		print(self.__email.recipients)
 
 		recipientsFrame = ttk.Frame(self.__root)
 		recipientsFrame.pack(padx=5,pady=5)
@@ -253,7 +249,7 @@ class emailGUI():
 
 	#program shuts down after sending emails and saving the info for them
 	def manualSend(self):
-		if datetime.time(8,30,0)<=datetime.datetime.now().time()<=datetime.time(9,5,0):
+		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(9,45,0):
 			self.__email.sendEmail()
 		try:
 			self.saveConfig()
@@ -263,7 +259,6 @@ class emailGUI():
 	
 	def saveConfig(self,filePath='wanbarConfig.json'):
 		config = self.__email.recipients
-		print(config)
 		#appends user info #it works
 		with open(filePath,'w') as file:
 			json.dump(config,file,indent=4)
@@ -272,9 +267,9 @@ if __name__== "__main__":
 	#uncomment #root.mainloop() to run admin interface
 	root = Tk()
 	app = emailGUI(root)
-	root.mainloop()
+	#root.mainloop()
 
 	#for sending and ending the program
-	"""while app.running:
+	while app.running:
 		app.manualSend()
-		app.running = False"""
+		app.running = False

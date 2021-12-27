@@ -33,8 +33,6 @@ class email1:
             text+=content.getSchedule(self.recipients[recipient][1])
         if self.recipients[recipient][0][2] and content.getHourlyForecast(self.recipients[recipient][2]):
             text+=content.getHourlyForecast(self.recipients[recipient][2])
-            if recipient=="lafish679@gmail.com":
-                text+="\n\nP.S. I love you Bean. Have a great day!"
         return text
 
 
