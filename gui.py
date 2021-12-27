@@ -263,6 +263,8 @@ class emailGUI():
 		with open(filePath,'w') as file:
 			json.dump(config,file,indent=4)
 		
+		#TEST
+		
 if __name__== "__main__":
 	#uncomment #root.mainloop() to run admin interface
 	root = Tk()
