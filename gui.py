@@ -1,9 +1,9 @@
 from tkinter import *
 from tkinter import ttk
 from email1 import email1
-from scheduler import emailScheduler
 import json
 import datetime
+#gui allows choosing content, adding/removing of recipients, keeping track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST email send, and configure sender credentials
 class emailGUI():
 	def __init__(self,root):
 		#bool for whether program is running
@@ -35,9 +35,7 @@ class emailGUI():
 		self.rInd = 0
 		self.addRecipientVar.set('')
 		self.recipList.set(self.__email.rList)
-		
-		
-		
+
 		#stores all the necessary information for each user
 		self.buildGuiRecipients(recipientsFrame,self.addRecipientVar,self.recipList)
 
@@ -73,10 +71,6 @@ class emailGUI():
 		controlsFrame = ttk.Frame(self.__root)
 		controlsFrame.pack(padx=5,pady=5)
 		self.buildGuiControls(controlsFrame)
-		
-		#initialize scheduler 
-		self.scheduler = emailScheduler()
-		self.scheduler.start()
 	
 	def buildGuiRecipients(self,master,addRecipientVar,recipList):
 		#widgets
@@ -261,17 +255,13 @@ class emailGUI():
 		config = self.__email.recipients
 		#appends user info #it works
 		with open(filePath,'w') as file:
-			json.dump(config,file,indent=4)
-		
-		#TEST
-		
-if __name__== "__main__":
-	#uncomment #root.mainloop() to run admin interface
+			json.dump(config,file,indent=4)	
+
+#uncomment #root.mainloop() to run interface and input new info or change old info
+if __name__ == "__main__":
 	root = Tk()
 	app = emailGUI(root)
 	#root.mainloop()
-
-	#for sending and ending the program
 	while app.running:
 		app.manualSend()
 		app.running = False
