@@ -12,7 +12,7 @@ class email1:
         self.recipients = dict()
         #self.recipients = []
         #ENTER CORRESPONDING INFO FOR EMAIL YOU PLAN TO SET UP TO SEND INFO
-        self.senderInfo = {'email':"",'password':''}
+        self.senderInfo = {'email':"wanbareport@gmail.com",'password':'TradebensimmonsPLEASE*'}
         self.rList = [recipient for recipient in self.recipients]
 
     def changeRecipients(self,r):
@@ -31,8 +31,8 @@ class email1:
             text+=content.getScores(self.recipients[recipient][1])
         if self.recipients[recipient][0][1] and content.getSchedule(self.recipients[recipient][1]):
             text+=content.getSchedule(self.recipients[recipient][1])
-        if self.recipients[recipient][0][2] and content.getHourlyForecast(self.recipients[recipient][2]):
-            text+=content.getHourlyForecast(self.recipients[recipient][2])
+        if self.recipients[recipient][0][2] and content.getHourlyForecast(self.recipients[recipient][2][0],self.recipients[recipient][2][1]):
+            text+=content.getHourlyForecast(self.recipients[recipient][2][0],self.recipients[recipient][2][1])
         return text
 
 

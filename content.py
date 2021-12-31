@@ -91,7 +91,7 @@ def getSchedule(teams):
 
 #print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
-def getHourlyForecast(zipcodes):
+def getHourlyForecast(unitsInd,zipcodes):
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
 	file = open("ZIP,LAT,LNG.csv")
 	csvreader = csv.reader(file)
@@ -101,6 +101,15 @@ def getHourlyForecast(zipcodes):
 	#removes the first line
 	rows = rows[1:]
 	file.close()
+
+	#makes sure that any illegitamate zipcodes are removed so that the binary search while loop doesn't become infinite
+	allZips = [i[0] for i in rows]
+	legitZipLst = [(j in allZips) for j in zipcodes]
+	if not all(legitZipLst):
+		for i in range(len(zipcodes)-1,-1,-1):
+			if not legitZipLst[i]:
+				zipcodes.remove(zipcodes[i])
+		print(zipcodes)
 
 	coord = [[] for i in zipcodes]
 	#checks if csv file is sorted according to zip code integer order from smallest to largest and it is confirmed true
@@ -113,6 +122,8 @@ def getHourlyForecast(zipcodes):
 		middle = int(len(rows)/2)
 		right = len(rows)
 		while(coord[z]==[]):
+			#print(zipcodes[z])
+			#print(rows[middle][0])
 			if int(zipcodes[z])==int(rows[middle][0]):
 				coord[z].append(rows[middle][1].strip())
 				coord[z].append(rows[middle][2].strip())
@@ -132,8 +143,9 @@ def getHourlyForecast(zipcodes):
 	res=""
 	for c in coord:
 		apiCodeFiller = ""
+		units = ["imperial","metric","standard"]
 		#INSERT API CODE FROM OPEN WEATHER API AFTER SIGNING UP AND WAITING A FEW HOURS (IF YOU HAVE A NEW ACCOUNT) AND THEN RUN
-		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units=imperial&exclude=minutely,daily&appid="+""+apiCodeFiller)
+		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+""+apiCodeFiller)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 		sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
@@ -146,12 +158,22 @@ def getHourlyForecast(zipcodes):
 		res += "Weather for zipcode " + zipcodes[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
 		#program starts running at  8:00 am and gives the current forecast for the day
 		#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
-		tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(14)]
-		feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Fahrenheit" for i in range(14)]
+		if unitsInd==0:
+			tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(14)]
+			feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Fahrenheit" for i in range(14)]
+		elif unitsInd==1:
+			tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Celsius" for i in range(14)]
+			feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Celsius" for i in range(14)]
+		else:
+			tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Kelvin" for i in range(14)]
+			feelArr=[str(int(data["hourly"][i]["feels_like"])) + " degrees Kelvin" for i in range(14)]
 		percPrecArr = [str(100*data["hourly"][i]["pop"]) + "%" for i in range(14)]
 		condArr=[data["hourly"][i]["weather"][0]["description"] for i in range(14)]
 		uviArr=[data["hourly"][i]["uvi"] for i in range(14)]
-		windSpArr = [str(data["hourly"][i]["wind_speed"]) + " mph" for i in range(14)]
+		if unitsInd==0:
+			windSpArr = [str(data["hourly"][i]["wind_speed"]) + " mph" for i in range(14)]
+		else:
+			windSpArr = [str(data["hourly"][i]["wind_speed"]) + " km/h" for i in range(14)]
 		
 		for i in range(14):
 			res += time.strftime("%H:%M", time.localtime(int(data["hourly"][i]["dt"]))) + '\n'
@@ -161,7 +183,7 @@ def getHourlyForecast(zipcodes):
 		res += "\n\n\n"
 	return res
 
-#print(getHourlyForecast(["18976","19122"]))
+#print(getHourlyForecast(0,["18976","19122"]))
 
 if __name__ == '__main__':
 	pass

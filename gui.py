@@ -3,6 +3,7 @@ from tkinter import ttk
 from email1 import email1
 import json
 import datetime
+import os
 #gui allows choosing content, adding/removing of recipients, keeping track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST email send, and configure sender credentials
 class emailGUI():
 	def __init__(self,root):
@@ -46,6 +47,7 @@ class emailGUI():
 		self.scoreVar = BooleanVar()
 		self.scheduleVar = BooleanVar()
 		self.weatherVar = BooleanVar()
+		self.unitVar = IntVar()
 		self.team = StringVar() #add to teams below
 		self.teamList = Variable()
 		self.tInd = 0
@@ -127,6 +129,8 @@ class emailGUI():
 		prefNBATeamLabel = ttk.Label(master,text='Preferred NBA Teams',style = "Header.TLabel")
 
 		#entering of preferred zipcodes
+		unitEntryLabel = ttk.Label(master,text = "Enter 0 for Imperial, 1 for Metric or 2 for Standard:")
+		unitEntry = ttk.Entry(master,width=10,textvariable=self.unitVar)
 		zipEntryLabel = ttk.Label(master,text = "Enter a 5 digit zipcode:")
 		self.zipcodeEntry = ttk.Entry(master,width=40,textvariable=zipcode)
 		zipcodeScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
@@ -158,12 +162,14 @@ class emailGUI():
 
 		spacerHorz.grid(row=0,column=3,padx=5,pady=50)
 
-		zipEntryLabel.grid(row=0,column=4)
-		self.zipcodeEntry.grid(row=1,column=4)
-		addZipButton.grid(row=2,column=4)
-		prefZipLabel.grid(row=3,column=4)
-		self.zipcodeListbox.grid(row=4,column=4)
-		removeZipButton.grid(row=5,column=4)
+		unitEntryLabel.grid(row = 0, column=4)
+		unitEntry.grid(row=1,column=4)
+		zipEntryLabel.grid(row=2,column=4)
+		self.zipcodeEntry.grid(row=3,column=4)
+		addZipButton.grid(row=4,column=4)
+		prefZipLabel.grid(row=5,column=4)
+		self.zipcodeListbox.grid(row=6,column=4)
+		removeZipButton.grid(row=7,column=4)
 
 	def buildGuiSender(self, master, senderEmailVar,senderPasswordVar):
 		header = ttk.Label(master, text = 'Sender Credentials:', style = 'Header.TLabel')
@@ -232,7 +238,7 @@ class emailGUI():
 		#later try get rid of duplicates in rList if certain users have updated info
 		rList = self.recipList.get()
 		#adds to dictionary of users and their preferred info in email class, makes only the necessary arrays
-		self.__email.recipients[rList[len(rList)-1]]=[[self.scoreVar.get(),self.scheduleVar.get(),self.weatherVar.get()],list(self.teamList.get()) if self.scoreVar.get() or self.scheduleVar.get() else [],list(self.zipList.get()) if self.weatherVar.get() else []]
+		self.__email.recipients[rList[len(rList)-1]]=[[self.scoreVar.get(),self.scheduleVar.get(),self.weatherVar.get()],list(self.teamList.get()) if self.scoreVar.get() or self.scheduleVar.get() else [],[self.unitVar.get(),list(self.zipList.get())] if self.weatherVar.get() else []]
 		print(self.__email.recipients)
 		self.tInd=0
 		self.zInd=0
@@ -243,7 +249,7 @@ class emailGUI():
 
 	#program shuts down after sending emails and saving the info for them
 	def manualSend(self):
-		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(9,45,0):
+		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(10,45,0):
 			self.__email.sendEmail()
 		try:
 			self.saveConfig()
@@ -265,3 +271,4 @@ if __name__ == "__main__":
 	while app.running:
 		app.manualSend()
 		app.running = False
+	os._exit(0)
