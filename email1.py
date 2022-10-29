@@ -20,7 +20,7 @@ class email1:
         return self.recipients
 
     def sendEmail(self):
-        yag = yagmail.SMTP(self.senderInfo['email'],password = self.senderInfo['password'])
+        yag = yagmail.SMTP(self.senderInfo['email'],self.senderInfo['password'])
         for recipient in self.recipients:
             yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = self.format(recipient))
 

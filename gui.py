@@ -249,7 +249,7 @@ class emailGUI():
 
 	#program shuts down after sending emails and saving the info for them
 	def manualSend(self):
-		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(10,45,0):
+		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(12,0,0):
 			self.__email.sendEmail()
 		try:
 			self.saveConfig()
@@ -272,3 +272,4 @@ if __name__ == "__main__":
 		app.manualSend()
 		app.running = False
 	os._exit(0)
+
