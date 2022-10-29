@@ -20,9 +20,9 @@ def getScores(teams):
 			tempScorePair = []
 			for b in data['data'][a]:
 				if b=='home_team_score' and data['data'][a][b]==0:
-					pass
+					continue
 				elif b=='visitor_team_score' and data['data'][a][b]==0:
-					pass
+					continue
 				elif b == "home_team":
 					tempTeamPair.append(data['data'][a]['home_team']['name'])
 				elif b == 'home_team_score':
@@ -36,7 +36,7 @@ def getScores(teams):
 						teamsPlayed.append(tempTeamPair[1])
 						scores.append(tempScorePair[0])
 						scores.append(tempScorePair[1])
-
+				
 		res = "Yesterday's Scores: \n"
 		for t in range(1,len(teamsPlayed),2):
 			if scores[t-1]>scores[t]:
@@ -145,7 +145,7 @@ def getHourlyForecast(unitsInd,zipcodes):
 		apiCodeFiller = ""
 		units = ["imperial","metric","standard"]
 		#INSERT API CODE FROM OPEN WEATHER API AFTER SIGNING UP AND WAITING A FEW HOURS (IF YOU HAVE A NEW ACCOUNT) AND THEN RUN
-		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+""+apiCodeFiller)
+		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+"04824b6761e310447d6680a23e6cc51d"+apiCodeFiller)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 		sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
