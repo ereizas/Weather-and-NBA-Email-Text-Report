@@ -1,9 +1,6 @@
 #remove unused imports when finished
 from datetime import date, timedelta
-import time
-#from requests.api import get
-import requests
-import csv
+import time, requests, csv, apikey
 
 def getScores(teams):
 	yesterday = str(date.today()-timedelta(days = 1))
@@ -138,14 +135,11 @@ def getHourlyForecast(unitsInd,zipcodes):
 			else:
 				left = middle
 				middle =int((left+right)/2)
-	#since the api code is private I have a filler var for it to remind me of its place
-	#PUT IN API CODE TO TEST AND RUN
 	res=""
 	for c in coord:
-		apiCodeFiller = ""
+		apiKey = apikey.apiKey
 		units = ["imperial","metric","standard"]
-		#INSERT API CODE FROM OPEN WEATHER API AFTER SIGNING UP AND WAITING A FEW HOURS (IF YOU HAVE A NEW ACCOUNT) AND THEN RUN
-		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+"04824b6761e310447d6680a23e6cc51d"+apiCodeFiller)
+		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+"4de97cbee829d1ad21bc5f9b99c8644e"+apiKey)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 		sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
