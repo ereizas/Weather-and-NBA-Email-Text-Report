@@ -119,8 +119,6 @@ def getHourlyForecast(unitsInd,zipcodes):
 		middle = int(len(rows)/2)
 		right = len(rows)
 		while(coord[z]==[]):
-			#print(zipcodes[z])
-			#print(rows[middle][0])
 			if int(zipcodes[z])==int(rows[middle][0]):
 				coord[z].append(rows[middle][1].strip())
 				coord[z].append(rows[middle][2].strip())
@@ -139,7 +137,6 @@ def getHourlyForecast(unitsInd,zipcodes):
 	for c in coord:
 		apiKey = apikey.apiKey
 		units = ["imperial","metric","standard"]
-		#INSERT API CODE FROM OPEN WEATHER API AFTER SIGNING UP AND WAITING A FEW HOURS (IF YOU HAVE A NEW ACCOUNT) AND THEN RUN
 		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+apiKey)
 		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
@@ -151,7 +148,7 @@ def getHourlyForecast(unitsInd,zipcodes):
 		currentWindSp = data["current"]["wind_speed"]
 		#formats string evenly
 		res += "Weather for zipcode " + zipcodes[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
-		#program starts running at  8:00 am and gives the current forecast for the day
+		#program starts running at 8:00 am and gives the current forecast for the day
 		#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
 		if unitsInd==0:
 			tempArr = [str(int(data["hourly"][i]["temp"])) + " degrees Fahrenheit" for i in range(14)]
