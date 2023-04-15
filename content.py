@@ -1,6 +1,7 @@
-import time, csv
+import time
+import requests
 import content_jsons
-
+import keys_and_passwords
 def getScores(teams):
 	scores = []
 	teamsPlayed = []
@@ -43,43 +44,32 @@ def getSchedule(teams):
 	else:
 		return "*There are no NBA Games scheduled for today.\n\n\n\n\n"
 
-print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+#print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getHourlyForecast(unitsInd,zipcodes):
-	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
-	file = open("ZIP,LAT,LNG.csv")
-	csvreader = csv.reader(file)
-	rows = []
-	for line in csvreader:
-		rows.append(line)
-	#removes the first line
-	rows = rows[1:]
-	file.close()
-
 	#makes sure that any illegitamate zipcodes are removed so that the binary search while loop doesn't become infinite
-	allZips = [i[0] for i in rows]
+	allZips = [i[0] for i in content_jsons.rows]
+	#boolean array that indicates the zipcode in the same index in the zipcodes array is valid
 	legitZipLst = [(j in allZips) for j in zipcodes]
 	if not all(legitZipLst):
 		for i in range(len(zipcodes)-1,-1,-1):
 			if not legitZipLst[i]:
 				zipcodes.remove(zipcodes[i])
-		print(zipcodes)
-
 	coord = [[] for i in zipcodes]
 	for z in range(len(zipcodes)):
 		left = 0
-		middle = int(len(rows)/2)
-		right = len(rows)
+		middle = int(len(content_jsons.rows)/2)
+		right = len(content_jsons.rows)
 		while(coord[z]==[]):
-			if int(zipcodes[z])==int(rows[middle][0]):
-				coord[z].append(rows[middle][1].strip())
-				coord[z].append(rows[middle][2].strip())
+			if int(zipcodes[z])==int(content_jsons.rows[middle][0]):
+				coord[z].append(content_jsons.rows[middle][1].strip())
+				coord[z].append(content_jsons.rows[middle][2].strip())
 				break
 			elif left==right:
-				coord[z].append(rows[middle][1].strip())
-				coord[z].append(rows[middle][2].strip())
+				coord[z].append(content_jsons.rows[middle][1].strip())
+				coord[z].append(content_jsons.rows[middle][2].strip())
 				break
-			elif int(zipcodes[z])<int(rows[middle][0]):
+			elif int(zipcodes[z])<int(content_jsons.rows[middle][0]):
 				right = middle
 				middle = int((left+right)/2)
 			else:
@@ -87,7 +77,10 @@ def getHourlyForecast(unitsInd,zipcodes):
 				middle =int((left+right)/2)
 	res=""
 	for c in coord:
-		data = getForecastJSON(c,unitsInd)
+		apiKey = keys_and_passwords.apiKey
+		units = ["imperial","metric","standard"]
+		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+apiKey)
+		data = response.json()
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 		sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
 		currentTemp = int(data["current"]["temp"])

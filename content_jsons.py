@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 import requests
 import keys_and_passwords
+import csv
+#collection of JSON info for yesterday's NBA scores
 yesterday = str(date.today()-timedelta(days = 1))
 url = "https://www.balldontlie.io/api/v1/games?start_date=" +yesterday + "&end_date=" + yesterday
 response = requests.get(url)
@@ -29,7 +31,7 @@ if scoresJSON['data']!=[]:
                 teamsPlayed[i].append(scoresJSON['data'][a]['visitor_team']['name'])
             elif b == "visitor_team_score":
                 scores[i].append(scoresJSON['data'][a][b])
-
+#collection of JSON info for today's NBA schedule
 url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
 response = requests.get(url)
 scheduleJSON = response.json()
@@ -53,9 +55,13 @@ if scheduleJSON['data']!=[]:
                 playTimes[i] = scheduleJSON['data'][a]['status']
             elif b == "visitor_team":
                 teamsPlaying[i].append(scheduleJSON['data'][a]['visitor_team']['name'])
-
-'''def 
-apiKey = keys_and_passwords.apiKey
-units = ["imperial","metric","standard"]
-response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+apiKey)
-forecastJSON = response.json()'''
+#Extracting of zipcodes from ZIP,LAT,LNG.csv
+#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
+file = open("ZIP,LAT,LNG.csv")
+csvreader = csv.reader(file)
+rows = []
+for line in csvreader:
+    rows.append(line)
+#removes the first line
+rows = rows[1:]
+file.close()
