@@ -1,18 +1,14 @@
 import content
 import yagmail
 from datetime import date
+import keys_and_passwords
 #DO NOT LEAVE YOUR USER AND PASSWORD INFO HERE
-#ENTER AN EMAIL FOR RECIPIENT TESTING
 
 class email1:
-    
-    #figure out how to send individualized emails for teams and zipcodes
     def __init__(self):
-        #format of user data
         self.recipients = dict()
-        #self.recipients = []
         #ENTER CORRESPONDING INFO FOR EMAIL YOU PLAN TO SET UP TO SEND INFO
-        self.senderInfo = {'email':"",'password':''}
+        self.senderInfo = {'email':"",'password':keys_and_passwords.password}
         self.rList = [recipient for recipient in self.recipients]
 
     def changeRecipients(self,r):
