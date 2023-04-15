@@ -1,61 +1,35 @@
-#remove unused imports when finished
-from datetime import date, timedelta
-import time, requests, csv, apikey
+import time, csv
+import content_jsons
 
 def getScores(teams):
-	yesterday = str(date.today()-timedelta(days = 1))
-	url = "https://www.balldontlie.io/api/v1/games?start_date=" +yesterday + "&end_date=" + yesterday
-	response = requests.get(url)
-	data=response.json()
-	teamsPlayed = []
 	scores = []
-	#makes sure to not crash when there were no games played the day before
-	if data['data']!=[]:
-		#goes through all elememts since the two team are in separate dictionaries in the larger dictionary for each game
-		for a in range(len(data["data"])):
-			tempTeamPair = []
-			tempScorePair = []
-			for b in data['data'][a]:
-				if b=='home_team_score' and data['data'][a][b]==0:
-					continue
-				elif b=='visitor_team_score' and data['data'][a][b]==0:
-					continue
-				elif b == "home_team":
-					tempTeamPair.append(data['data'][a]['home_team']['name'])
-				elif b == 'home_team_score':
-					tempScorePair.append(data['data'][a][b])
-				elif b == "visitor_team":
-					tempTeamPair.append(data['data'][a]['visitor_team']['name'])
-				elif b == "visitor_team_score":
-					tempScorePair.append(data['data'][a][b])
-					if (tempTeamPair[0] in teams or tempTeamPair[1] in teams) :
-						teamsPlayed.append(tempTeamPair[0])
-						teamsPlayed.append(tempTeamPair[1])
-						scores.append(tempScorePair[0])
-						scores.append(tempScorePair[1])
-				
+	teamsPlayed = []
+	if(len(content_jsons.teamsPlayed)!=0):
 		res = "Yesterday's Scores: \n"
-		for t in range(1,len(teamsPlayed),2):
-			if scores[t-1]>scores[t]:
-				res += teamsPlayed[t-1] + " beat " + teamsPlayed[t] + " " + str(scores[t-1]) + "-" + str(scores[t]) + "\n\n"
-			elif scores[t]>scores[t-1]:
-				res += teamsPlayed[t] + " beat " + teamsPlayed[t-1] + " " + str(scores[t]) + "-" + str(scores[t-1]) + "\n\n"
+		for t in range(len(content_jsons.teamsPlayed)):
+			if(content_jsons.teamsPlayed[t][0] in teams or content_jsons.teamsPlayed[t][1] in teams):
+				teamsPlayed.append(content_jsons.teamsPlayed[t])
+				scores.append(content_jsons.scores[t])
+		for t in range(len(teamsPlayed)):
+			if scores[t][0]>scores[t][1]:
+				res += teamsPlayed[t][0] + " beat " + teamsPlayed[t][1] + " " + str(scores[t][0]) + "-" + str(scores[t][1]) + "\n\n"
+			elif scores[t]>scores[t]:
+				res += teamsPlayed[t][1] + " beat " + teamsPlayed[t][0] + " " + str(scores[t][1]) + "-" + str(scores[t][0]) + "\n\n"
+		##check what to do w these
 		if res =="Yesterday's Scores: \n":
 			return "*Your teams did not play any games yesterday.\n\n\n\n\n"
-		res+="*If you see that a game that you expected is not shown, then that game has been postponed.\n\n\n\n\n"
+		res+="*If a game that you expected is not shown, then that game may have been postponed.\n\n\n\n\n"
 		return res
 	else:
 		return "*No NBA games were played yesterday.\n\n\n\n\n"
+	
 
-#print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getSchedule(teams):
-	url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
-	response = requests.get(url)
-	data=response.json()
 	teamsPlaying = []
 	playTimes = []
-
+	data = getScheduleJSON()
 	if data['data']!=[]:
 		for a in range(len(data["data"])):
 			tempTeamPair = []
@@ -78,7 +52,7 @@ def getSchedule(teams):
 
 		res = "Today's Slate: \n"
 		for s in range(1,len(teamsPlaying),2):
-			res+= teamsPlaying[s-1] + " at " + teamsPlaying[s] + " " + playTimes[int(s/2)] + "\n\n"
+			res+= teamsPlaying[s] + " at " + teamsPlaying[s-1] + " " + playTimes[int(s/2)] + "\n\n"
 		if res == "Today's Slate: \n":
 			return "*Your teams are not playing any games today.\n\n\n\n\n"
 		return res + "\n\n\n\n\n"
@@ -109,11 +83,6 @@ def getHourlyForecast(unitsInd,zipcodes):
 		print(zipcodes)
 
 	coord = [[] for i in zipcodes]
-	#checks if csv file is sorted according to zip code integer order from smallest to largest and it is confirmed true
-	"""for r in range(1,len(rows)):
-		if int(rows[r][0])<int(rows[r-1][0]):
-			print("f")"""
-	
 	for z in range(len(zipcodes)):
 		left = 0
 		middle = int(len(rows)/2)
@@ -135,10 +104,7 @@ def getHourlyForecast(unitsInd,zipcodes):
 				middle =int((left+right)/2)
 	res=""
 	for c in coord:
-		apiKey = apikey.apiKey
-		units = ["imperial","metric","standard"]
-		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+apiKey)
-		data = response.json()
+		data = getForecastJSON(c,unitsInd)
 		sunrise = time.strftime("%H:%M", time.localtime(int(data["current"]["sunrise"])))
 		sunset = time.strftime("%H:%M", time.localtime(int(data["current"]["sunset"])))
 		currentTemp = int(data["current"]["temp"])

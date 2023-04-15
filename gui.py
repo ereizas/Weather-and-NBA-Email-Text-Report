@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import ttk
 from email1 import email1
 import json
-import datetime
 import os
 #gui allows choosing content, adding/removing of recipients, keeping track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST email send, and configure sender credentials
 class emailGUI():
@@ -249,8 +248,7 @@ class emailGUI():
 
 	#program shuts down after sending emails and saving the info for them
 	def manualSend(self):
-		if datetime.time(8,0,0)<=datetime.datetime.now().time()<=datetime.time(12,0,0):
-			self.__email.sendEmail()
+		self.__email.sendEmail()
 		try:
 			self.saveConfig()
 		except Exception as e:
