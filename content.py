@@ -24,43 +24,26 @@ def getScores(teams):
 		return "*No NBA games were played yesterday.\n\n\n\n\n"
 	
 
-print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+#print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getSchedule(teams):
 	teamsPlaying = []
 	playTimes = []
-	data = getScheduleJSON()
-	if data['data']!=[]:
-		for a in range(len(data["data"])):
-			tempTeamPair = []
-			timeTemp = ''
-			for b in data['data'][a]:
-				if b=='home_team_score' and data['data'][a][b]==0:
-					pass
-				elif b=='visitor_team_score' and data['data'][a][b]==0:
-					pass
-				elif b == "home_team":
-					tempTeamPair.append(data['data'][a]['home_team']['name'])
-				elif b =="status":
-					timeTemp = data['data'][a]['status']
-				elif b == "visitor_team":
-					tempTeamPair.append(data['data'][a]['visitor_team']['name'])
-					if (tempTeamPair[0] in teams or tempTeamPair[1] in teams) :
-						teamsPlaying.append(tempTeamPair[0])
-						teamsPlaying.append(tempTeamPair[1])
-						playTimes.append(timeTemp)
-
+	if len(content_jsons.teamsPlaying)>0:
 		res = "Today's Slate: \n"
-		for s in range(1,len(teamsPlaying),2):
-			res+= teamsPlaying[s] + " at " + teamsPlaying[s-1] + " " + playTimes[int(s/2)] + "\n\n"
+		for t in range(len(content_jsons.teamsPlaying)):
+			if(content_jsons.teamsPlaying[t][0] in teams or content_jsons.teamsPlaying[t][1] in teams):
+				teamsPlaying.append(content_jsons.teamsPlaying[t])
+				playTimes.append(content_jsons.playTimes[t])
+		for s in range(len(teamsPlaying)):
+			res+= teamsPlaying[s][1] + " at " + teamsPlaying[s][0] + " " + playTimes[int(s/2)] + "\n\n"
 		if res == "Today's Slate: \n":
 			return "*Your teams are not playing any games today.\n\n\n\n\n"
-		return res + "\n\n\n\n\n"
-						
+		return res + "\n\n\n\n\n"				
 	else:
 		return "*There are no NBA Games scheduled for today.\n\n\n\n\n"
 
-#print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
+print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
 def getHourlyForecast(unitsInd,zipcodes):
 	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
