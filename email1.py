@@ -8,7 +8,7 @@ class email1:
     def __init__(self):
         self.recipients = dict()
         #ENTER CORRESPONDING INFO FOR EMAIL YOU PLAN TO SET UP TO SEND INFO
-        self.senderInfo = {'email':"",'password':keys_and_passwords.password}
+        self.senderInfo = {'email':"wanbareport@gmail.com",'password':keys_and_passwords.password}
         self.rList = [recipient for recipient in self.recipients]
 
     def changeRecipients(self,r):
