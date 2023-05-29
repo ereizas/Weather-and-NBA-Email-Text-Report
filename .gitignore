@@ -130,7 +130,7 @@ dmypy.json
 
 # Ignore the config file
 wanbarConfig.json
-key_and_passwords.py
+keys_and_passwords.py
 email1.py
 
 
