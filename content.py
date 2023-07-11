@@ -2,21 +2,66 @@ import time
 import requests
 import content_jsons
 import keys_and_passwords
-def getScores(teams:list[str])->str:
+from datetime import date, timedelta
+import csv
+def getAllTeamsAndScores():
+	"""
+	Retrieves all the teams that played yesterday and the respective scores
+	@return teamsPlayed : list of all the teams that played yesterday
+	@return scores : llist of scores for the teams that played yesterday
+	"""
+
+	yesterday = str(date.today()-timedelta(days = 1))
+	url = "https://www.balldontlie.io/api/v1/games?start_date=" +yesterday + "&end_date=" + yesterday
+	response = requests.get(url)
+	scoresJSON = response.json()
+	#index for teamsPlayed and scores
+	i = 0
+	#initialized this way so that the first conditional in the for loop will not throw an error
+	teamsPlayed = [[]]
+	scores = [[]]
+	if scoresJSON['data']!=[]:
+		#goes through all elememts since the two team are in separate dictionaries in the larger dictionary for each game
+		for a in range(len(scoresJSON["data"])):
+			if teamsPlayed[i]!=[] and scores[i]!=[]:
+				i+=1
+				#creates the arrays that the following for loop will add to
+				teamsPlayed.append([])
+				scores.append([])
+			for b in scoresJSON['data'][a]:
+				if b=='home_team_score' and scoresJSON['data'][a][b]==0:
+					continue
+				elif b=='visitor_team_score' and scoresJSON['data'][a][b]==0:
+					continue
+				elif b == "home_team":
+					teamsPlayed[i].append(scoresJSON['data'][a]['home_team']['name'])
+				elif b == 'home_team_score':
+					scores[i].append(scoresJSON['data'][a][b])
+				elif b == "visitor_team":
+					teamsPlayed[i].append(scoresJSON['data'][a]['visitor_team']['name'])
+				elif b == "visitor_team_score":
+					scores[i].append(scoresJSON['data'][a][b])
+	if teamsPlayed[0]==[]:
+		return [],[]
+	return teamsPlayed, scores
+
+def getScores(teams:list[str],allTeamsPlayed:list[str],allScores:list[str])->str:
 	"""
 	Returns a string with scores from yesterday for certain teams
 	@param teams : list of str names of teams
+	@param allTeamsPlayed : list of all the NBA teams that played yesterday
+	@param allScores : list of scores for teams that played yesterday
 	@return : str informing user of scores of teams they prefer from yesterday or a message saying otherwise
 	"""
 	scores = []
 	teamsPlayed = []
-	if(len(content_jsons.teamsPlayed)!=0):
+	if(len(allTeamsPlayed)!=0):
 		res = "Yesterday's Scores: \n"
-		for t in range(len(content_jsons.teamsPlayed)):
-			if(content_jsons.teamsPlayed[t][0] in teams or content_jsons.teamsPlayed[t][1] in teams):
+		for t in range(len(allTeamsPlayed)):
+			if(allTeamsPlayed[t][0] in teams or allTeamsPlayed[t][1] in teams):
 				#appends array pair of the two teams that faced off and another two element array of the respective scores
-				teamsPlayed.append(content_jsons.teamsPlayed[t])
-				scores.append(content_jsons.scores[t])
+				teamsPlayed.append(allTeamsPlayed[t])
+				scores.append(allScores[t])
 		for t in range(len(teamsPlayed)):
 			if scores[t][0]>scores[t][1]:
 				res += teamsPlayed[t][0] + " beat " + teamsPlayed[t][1] + " " + str(scores[t][0]) + "-" + str(scores[t][1]) + "\n\n"
@@ -138,7 +183,7 @@ def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
 		res += "\n\n\n"
 	return res
 
-print(getHourlyForecast(0,["18976","19122"]))
+#print(getHourlyForecast(0,["18976","19122"]))
 
 if __name__ == '__main__':
 	pass
