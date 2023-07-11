@@ -1,6 +1,5 @@
 import time
 import requests
-import content_jsons
 import keys_and_passwords
 from datetime import date, timedelta
 import csv
@@ -138,31 +137,48 @@ def getSchedule(teams:list[str],allTeamsPlaying:list[list[str]],allTimes:list[st
 
 #print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
-def getCoords(zipcodes:list[str])->list[list[str]]:
+def getCoordRows()->list[list[str]]:
+	"""
+	Retrieves the row-by-row contents of a .csv file with zipcodes and corresponding coordinates
+	@return : all rows except the first of the file
+	"""
+	#Extracting of zipcodes from ZIP,LAT,LNG.csv
+	#csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
+	file = open("ZIP,LAT,LNG.csv")
+	csvreader = csv.reader(file)
+	rows = []
+	for line in csvreader:
+		rows.append(line)
+	file.close()
+	#returns everything except for the first line
+	return rows[1:]
+
+def getCoords(zipcodes:list[str],coordRows:list[list[str]])->list[list[str]]:
 	"""
 	Retrieves coordinate pairs for specified zipcodes
 	@param zipcodes : list of str zipcodes that the user wants the forecast for
+	@param coordRows : rows from the zipcode coordinate csv file
 	@return coords : list of coordinate pairs for each zipcode
 	"""
 
 	#removes invalid zipcodes
-	zipcodes = [zipcode for zipcode in zipcodes if zipcode in [i[0] for i in content_jsons.rows]]
+	zipcodes = [zipcode for zipcode in zipcodes if zipcode in [i[0] for i in coordRows]]
 	coords = [[] for i in zipcodes]
 	#extract coordinates for each zipcode in zipcodes array via binary search
 	for z in range(len(zipcodes)):
 		left = 0
-		middle = int(len(content_jsons.rows)/2)
-		right = len(content_jsons.rows)
+		middle = int(len(coordRows)/2)
+		right = len(coordRows)
 		while(coords[z]==[]):
-			if int(zipcodes[z])==int(content_jsons.rows[middle][0]):
-				coords[z].append(content_jsons.rows[middle][1].strip())
-				coords[z].append(content_jsons.rows[middle][2].strip())
+			if int(zipcodes[z])==int(coordRows[middle][0]):
+				coords[z].append(coordRows[middle][1].strip())
+				coords[z].append(coordRows[middle][2].strip())
 				break
 			elif left==right:
-				coords[z].append(content_jsons.rows[middle][1].strip())
-				coords[z].append(content_jsons.rows[middle][2].strip())
+				coords[z].append(coordRows[middle][1].strip())
+				coords[z].append(coordRows[middle][2].strip())
 				break
-			elif int(zipcodes[z])<int(content_jsons.rows[middle][0]):
+			elif int(zipcodes[z])<int(coordRows[middle][0]):
 				right = middle
 				middle = int((left+right)/2)
 			else:
@@ -170,15 +186,16 @@ def getCoords(zipcodes:list[str])->list[list[str]]:
 				middle =int((left+right)/2)
 	return coords
 
-def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
+def getHourlyForecast(unitsInd:int,zipcodes:list[str],coordRows:list[list[str]])->str:
 	"""
 	Returns a string with hourly forecast information for preferred zipcodes
 	@param unitsInd : index into units array to determine which unit of temperature out of Fahrenheit, Celsius, and Kelvin the user wants
 	@param zipcodes : list of str zipcodes the user wants the weather for
+	@param coordRows : rows from the zipcode coordinate csv file
 	"""
 	
 	res=""
-	coords = getCoords(zipcodes)
+	coords = getCoords(zipcodes,coordRows)
 	for c in coords:
 		apiKey = keys_and_passwords.apiKey
 		units = ["imperial","metric","standard"]
