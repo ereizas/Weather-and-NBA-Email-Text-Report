@@ -4,7 +4,7 @@ import content_jsons
 import keys_and_passwords
 from datetime import date, timedelta
 import csv
-def getAllTeamsAndScores():
+def getAllNBAScores():
 	"""
 	Retrieves all the teams that played yesterday and the respective scores
 	@return teamsPlayed : list of all the teams that played yesterday
@@ -78,20 +78,56 @@ def getScores(teams:list[str],allTeamsPlayed:list[str],allScores:list[str])->str
 
 #print(getScores(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
-def getSchedule(teams:list[str])->str:
+def getAllNBASchedules():
+	"""
+	Retrieves all NBA teams playling today and their scheduled times to play
+	@return teamsPlaying : list of all NBA teams that are going to play a game today
+	@return playTimes : list of scheduled times for games
+	"""
+
+	url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
+	response = requests.get(url)
+	scheduleJSON = response.json()
+	i=0
+	teamsPlaying = [[]]
+	playTimes = [0]
+	if scheduleJSON['data']!=[]:
+		for a in range(len(scheduleJSON["data"])):
+			if teamsPlaying[i]!=[] and playTimes[i]!=0:
+				teamsPlaying.append([])
+				playTimes.append(0)
+				i+=1
+			for b in scheduleJSON['data'][a]:
+				if b=='home_team_score' and scheduleJSON['data'][a][b]==0:
+					pass
+				elif b=='visitor_team_score' and scheduleJSON['data'][a][b]==0:
+					pass
+				elif b == "home_team":
+					teamsPlaying[i].append(scheduleJSON['data'][a]['home_team']['name'])
+				elif b =="status":
+					playTimes[i] = scheduleJSON['data'][a]['status']
+				elif b == "visitor_team":
+					teamsPlaying[i].append(scheduleJSON['data'][a]['visitor_team']['name'])
+	if teamsPlaying[0]==[]:
+		return [], []
+	return teamsPlaying, playTimes
+
+def getSchedule(teams:list[str],allTeamsPlaying:list[list[str]],allTimes:list[str])->str:
 	"""
 	Returns a string with the schedule for today for teams in teams
 	@param teams : list of str team names
+	@param allTeamsPlaying : list of all NBA teams scheduled to play today
+	@param allTimes : list of all times that NBA teams are scheduled to play today
 	@return : str informing user of the schedule for today for teams they prefer or a message saying otherwise
 	"""
 	teamsPlaying = []
 	playTimes = []
-	if len(content_jsons.teamsPlaying)>0:
+	if len(allTeamsPlaying)>0:
 		res = "Today's Slate: \n"
-		for t in range(len(content_jsons.teamsPlaying)):
-			if(content_jsons.teamsPlaying[t][0] in teams or content_jsons.teamsPlaying[t][1] in teams):
-				teamsPlaying.append(content_jsons.teamsPlaying[t])
-				playTimes.append(content_jsons.playTimes[t])
+		for t in range(len(allTeamsPlaying)):
+			if(allTeamsPlaying[t][0] in teams or allTeamsPlaying[t][1] in teams):
+				teamsPlaying.append(allTeamsPlaying[t])
+				playTimes.append(allTimes[t])
 		for s in range(len(teamsPlaying)):
 			res+= teamsPlaying[s][1] + " at " + teamsPlaying[s][0] + " " + playTimes[int(s/2)] + "\n\n"
 		if res == "Today's Slate: \n":
