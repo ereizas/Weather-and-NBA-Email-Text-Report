@@ -26,23 +26,27 @@ class email1:
         """
 
         yag = yagmail.SMTP(self.senderInfo['email'],self.senderInfo['password'])
-        #retrieve all-encompassing data here
+        allTeamsPlayed, allScores = [], []
+        if any(recip[1] for recip in self.recipients):
+            allTeamsPlayed, allScores = content.getAllTeamsAndScores()
         for recipient in self.recipients:
-            yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = self.format(recipient))
+            yag.send(to=recipient,subject="Weather and/or NBA Report for " + str(date.today()) + ":\n\n",contents = self.format(recipient,allTeamsPlayed,allScores))
 
     #individual formatting
-    def format(self,recipient):
+    def format(self,recipient,allTeamsPlayed, allScores):
         """
         Adds information that the user requested to the contents of the email
         @param recpient : email address for a user
+        @param allTeamsPlayed : list of all NBA teams that played yesterday
+        @param allScores : list of all NBA scores from yesterday
         """
 
         text = ""
-        if self.recipients[recipient][0][0] and content.getScores(self.recipients[recipient][1]):
-            text+=content.getScores(self.recipients[recipient][1])
-        if self.recipients[recipient][0][1] and content.getSchedule(self.recipients[recipient][1]):
+        if self.recipients[recipient][0][0]:
+            text+=content.getScores(self.recipients[recipient][1],allTeamsPlayed,allScores)
+        if self.recipients[recipient][0][1]:
             text+=content.getSchedule(self.recipients[recipient][1])
-        if self.recipients[recipient][0][2] and content.getHourlyForecast(self.recipients[recipient][2][0],self.recipients[recipient][2][1]):
+        if self.recipients[recipient][0][2]:
             text+=content.getHourlyForecast(self.recipients[recipient][2][0],self.recipients[recipient][2][1])
         return text
 
