@@ -57,29 +57,29 @@ def getSchedule(teams:list[str])->str:
 
 #print(getSchedule(["76ers","Bulls","Trail Blazers","Raptors","Bucks","Nets","Suns"]))
 
+def getCoords(zipcodes:list[str])->list[list[str]]:
+	"""
+	Retrieves coordinate pairs for specified zipcodes
+	@param zipcodes : list of str zipcodes that the user wants the forecast for
+	@return coords : list of coordinate pairs for each zipcode
+	"""
 
-def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
-	"""
-	Returns a string with hourly forecast information for preferred zipcodes
-	@param unitsInd : index into units array to determine which unit of temperature out of Fahrenheit, Celsius, and Kelvin the user wants
-	@param zipcodes : list of str zipcodes the user wants the weather for
-	"""
-	#boolean array that indicates the zipcode in the same index in the zipcodes array is valid
+	#removes invalid zipcodes
 	zipcodes = [zipcode for zipcode in zipcodes if zipcode in [i[0] for i in content_jsons.rows]]
-	coord = [[] for i in zipcodes]
-	#extract coordinates for certain zipcodes via binary search
+	coords = [[] for i in zipcodes]
+	#extract coordinates for each zipcode in zipcodes array via binary search
 	for z in range(len(zipcodes)):
 		left = 0
 		middle = int(len(content_jsons.rows)/2)
 		right = len(content_jsons.rows)
-		while(coord[z]==[]):
+		while(coords[z]==[]):
 			if int(zipcodes[z])==int(content_jsons.rows[middle][0]):
-				coord[z].append(content_jsons.rows[middle][1].strip())
-				coord[z].append(content_jsons.rows[middle][2].strip())
+				coords[z].append(content_jsons.rows[middle][1].strip())
+				coords[z].append(content_jsons.rows[middle][2].strip())
 				break
 			elif left==right:
-				coord[z].append(content_jsons.rows[middle][1].strip())
-				coord[z].append(content_jsons.rows[middle][2].strip())
+				coords[z].append(content_jsons.rows[middle][1].strip())
+				coords[z].append(content_jsons.rows[middle][2].strip())
 				break
 			elif int(zipcodes[z])<int(content_jsons.rows[middle][0]):
 				right = middle
@@ -87,8 +87,18 @@ def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
 			else:
 				left = middle
 				middle =int((left+right)/2)
+	return coords
+
+def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
+	"""
+	Returns a string with hourly forecast information for preferred zipcodes
+	@param unitsInd : index into units array to determine which unit of temperature out of Fahrenheit, Celsius, and Kelvin the user wants
+	@param zipcodes : list of str zipcodes the user wants the weather for
+	"""
+	
 	res=""
-	for c in coord:
+	coords = getCoords(zipcodes)
+	for c in coords:
 		apiKey = keys_and_passwords.apiKey
 		units = ["imperial","metric","standard"]
 		response = requests.get("https://api.openweathermap.org/data/2.5/onecall?lat=" + c[0] + "&lon=" + c[1] + "&units="+units[unitsInd]+"&exclude=minutely,daily&appid="+apiKey)
@@ -101,7 +111,7 @@ def getHourlyForecast(unitsInd:int,zipcodes:list[str])->str:
 		currentDesc = data["current"]["weather"][0]["description"]
 		currentWindSp = data["current"]["wind_speed"]
 		#formats string evenly
-		res += "Weather for zipcode " + zipcodes[coord.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
+		res += "Weather for zipcode " + zipcodes[coords.index(c)] +": \n\nSunrise & Sunset:\nSunrise: " + sunrise + "\nSunset: " +sunset + "\n\n"+"Current conditions: \nCurrent Temperature: " + str(currentTemp) + " degrees Fahrenheit" + "\nFeels like: " +str(currentFeel) +" degrees Fahrenheit\nCurrent condition: " + currentDesc + "\nUV index: " + str(currentUVI) + "\nWind Speed: " + str(currentWindSp) + " mph" + "\n\n" 
 		#finds temperature, feels like temp, percent chance of percipitation, condition, uvi index, and wind speed for each hour
 		hours = 14
 		if unitsInd==0:
