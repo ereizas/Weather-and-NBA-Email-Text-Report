@@ -9,8 +9,8 @@ response = requests.get(url)
 scoresJSON = response.json()
 #index for teamsPlayed and scores
 i = 0
+teamsPlayed = [[]]
 if scoresJSON['data']!=[]:
-    teamsPlayed = [[]]
     scores = [[]]
     #goes through all elememts since the two team are in separate dictionaries in the larger dictionary for each game
     for a in range(len(scoresJSON["data"])):
@@ -31,13 +31,15 @@ if scoresJSON['data']!=[]:
                 teamsPlayed[i].append(scoresJSON['data'][a]['visitor_team']['name'])
             elif b == "visitor_team_score":
                 scores[i].append(scoresJSON['data'][a][b])
+if teamsPlayed[0]==[]:
+    teamsPlayed=[]
 #collection of JSON info for today's NBA schedule
 url = "https://www.balldontlie.io/api/v1/games?start_date=" +str(date.today()) + "&end_date=" + str(date.today())
 response = requests.get(url)
 scheduleJSON = response.json()
 i=0
+teamsPlaying = [[]]
 if scheduleJSON['data']!=[]:
-    teamsPlaying = [[]]
     playTimes = [0]
     for a in range(len(scheduleJSON["data"])):
         if teamsPlaying[i]!=[] and playTimes[i]!=0:
@@ -55,6 +57,8 @@ if scheduleJSON['data']!=[]:
                 playTimes[i] = scheduleJSON['data'][a]['status']
             elif b == "visitor_team":
                 teamsPlaying[i].append(scheduleJSON['data'][a]['visitor_team']['name'])
+if teamsPlaying[0]==[]:
+    teamsPlaying=[]
 #Extracting of zipcodes from ZIP,LAT,LNG.csv
 #csv file from Eric Hurst at https://gist.github.com/erichurst/7882666
 file = open("ZIP,LAT,LNG.csv")
