@@ -2,11 +2,14 @@ import content
 import yagmail
 from datetime import date
 import keys_and_passwords
+import json
 #DO NOT LEAVE YOUR USER AND PASSWORD INFO HERE
 
 class email1:
     def __init__(self):
         self.recipients = dict()
+        with open('wanbarConfig.json') as file:
+            self.recipients=json.load(file)
         self.senderInfo = {'email':keys_and_passwords.emailAddr,'password':keys_and_passwords.password}
         self.rList = [recipient for recipient in self.recipients]
 
