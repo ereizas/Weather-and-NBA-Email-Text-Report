@@ -3,65 +3,67 @@ from tkinter import ttk
 from email1 import email1
 import json
 import os
-#gui allows choosing content, adding/removing of recipients, keeping track of user's preferred zipcode(s), team(s) and information, schedule for 8 am EST email send, and configure sender credentials
+#gui allows choosing content, adding/removing of recipients, keeping track of user's preferred zipcode(s), team(s) and information, and configure sender credentials
 class emailGUI():
-	def __init__(self,root):
+	def __init__(self,root:Tk):
 		#bool for whether program is running
 		self.running = True
 		#header/title
 		self.__root = root
 		self.__root.title('NBA and/or Weather Report')
-		title_label = ttk.Label(self.__root, text = "NBA and/or Weather Report", font = 'Daytona 35 bold', justify=CENTER)
+		title_label = ttk.Label(self.__root, text = "NBA and/or Weather Report", font = 'Daytona 30 bold', justify=CENTER)
 		#size
 		title_label.pack(padx=5,pady=5)
+		mainFrame = ttk.Frame(self.__root)
+		mainFrame.pack(fill=BOTH,expand=1,anchor=CENTER)
+		canv = Canvas(mainFrame)
+		canv.pack(side=LEFT,fill=BOTH,expand=1,anchor=CENTER)
+		mainScrollBar = ttk.Scrollbar(mainFrame,orient=VERTICAL,command=canv.yview)
+		mainScrollBar.pack(side='right',fill=Y)
+		canv.configure(yscrollcommand=mainScrollBar.set,)
+		canv.bind('<Configure>', lambda e: canv.configure(scrollregion=canv.bbox("all")))
+		secondFrame = Frame(canv)
+		secondFrame.pack(fill=BOTH,expand=1)
+		canv.create_window((secondFrame.winfo_screenwidth()/2, secondFrame.winfo_screenheight()/2), window=secondFrame, anchor="center",height=800,width=3000)
 		
 		self.__style = ttk.Style()
 		self.__style.configure('TButton',font = ('Daytona',12,'bold'))
 		self.__style.configure('Header.TLabel',font = ('Daytona',18,'bold'))
 
-		#GUI list for recipients
-		#later try to make open to users to input email and other info
 		self.__email = email1()
 		#loads configuration
-		d = dict()
 		with open('wanbarConfig.json') as file:
-			d = json.load(file)
-		self.__email.recipients = d
+			self.__email.recipients = json.load(file)
 
-		recipientsFrame = ttk.Frame(self.__root)
+		recipientsFrame = ttk.Frame(secondFrame)
 		recipientsFrame.pack(padx=5,pady=5)
-		self.addRecipientVar = StringVar()
 		self.recipList = Variable()
 		self.rInd = 0
-		self.addRecipientVar.set('')
 		self.recipList.set(self.__email.rList)
 
 		#stores all the necessary information for each user
-		self.buildGuiRecipients(recipientsFrame,self.addRecipientVar,self.recipList)
+		self.buildGuiRecipients(recipientsFrame,self.recipList)
 
 		#gui checkboxes of content
-		contentsFrame = ttk.Frame(self.__root)
+		contentsFrame = ttk.Frame(secondFrame)
 		contentsFrame.pack(padx=5,pady=5)
 		#boolean for check or unchecked
 		self.scoreVar = BooleanVar()
 		self.scheduleVar = BooleanVar()
 		self.weatherVar = BooleanVar()
 		self.unitVar = IntVar()
-		self.team = StringVar() #add to teams below
 		self.teamList = Variable()
 		self.tInd = 0
-		#self.teams = []
 
 		self.zipcode=StringVar()#add to array below
 		self.zipList = Variable()
 		self.zInd = 0
-		self.team.set('')
 		self.teamList.set([])
 		self.zipcode.set('')
 		self.zipList.set([])
-		self.buildGuiContents(contentsFrame,self.scoreVar,self.scheduleVar,self.weatherVar,self.team,self.teamList,self.zipcode,self.zipList)
+		self.buildGuiContents(contentsFrame,self.scoreVar,self.scheduleVar,self.weatherVar,self.teamList,self.zipcode,self.zipList)
 		#GUI for sender credentials
-		senderFrame = ttk.Frame(self.__root)
+		senderFrame = ttk.Frame(secondFrame)
 		senderFrame.pack(padx=5,pady=5)
 		self.senderEmailVar = StringVar()
 		self.senderPasswordVar = StringVar()
@@ -69,18 +71,18 @@ class emailGUI():
 		self.senderPasswordVar.set(self.__email.senderInfo['password'])
 		self.buildGuiSender(senderFrame,self.senderEmailVar,self.senderPasswordVar)
 		#GUI for controls
-		controlsFrame = ttk.Frame(self.__root)
+		controlsFrame = ttk.Frame(secondFrame)
 		controlsFrame.pack(padx=5,pady=5)
 		self.buildGuiControls(controlsFrame)
 	
-	def buildGuiRecipients(self,master,addRecipientVar,recipList):
+	def buildGuiRecipients(self,master,recipList):
 		#widgets
-		header = ttk.Label(master,text = 'Recipients: ', style = "Header.TLabel")
+		header = ttk.Label(master,text = 'Recipient email: ', style = "Header.TLabel")
 		spacer_frame = ttk.Frame(master) #for spacing
 
-		self.recipientsEntry = ttk.Entry(master,width=40, textvariable=addRecipientVar)
+		self.recipientsEntry = ttk.Entry(master,width=40)
 		recipientsScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
-		recipientsScrollbar.grid(row = 4, column =1, sticky = N+S+W+E)
+		recipientsScrollbar.grid(row = 3, column =1, sticky = N+S+W+E)
 		self.recipientsListbox = Listbox(master, listvariable=recipList, selectmode='multiple', width=40,height =5)
 		self.recipientsListbox.configure(yscrollcommand=recipientsScrollbar.set)
 		recipientsScrollbar.config(command=self.recipientsListbox.yview)
@@ -94,7 +96,7 @@ class emailGUI():
 		self.recipientsListbox.grid(row=3,column=0)
 		removeButton.grid(row=4,column=0)
 
-	def buildGuiContents(self, master, scoreVar, scheduleVar, weatherVar, team,teams,zipcode,zipcodes):
+	def buildGuiContents(self, master, scoreVar, scheduleVar, weatherVar,teams,zipcode,zipcodes):
 		header = ttk.Label(master,text = 'Content Selection: ', style = "Header.TLabel")
 		spacer_frame = ttk.Frame(master)
 		spacerHorz = ttk.Frame(master)
@@ -128,12 +130,12 @@ class emailGUI():
 		prefNBATeamLabel = ttk.Label(master,text='Preferred NBA Teams',style = "Header.TLabel")
 
 		#entering of preferred zipcodes
-		unitEntryLabel = ttk.Label(master,text = "Enter 0 for Imperial, 1 for Metric or 2 for Standard:")
-		unitEntry = ttk.Entry(master,width=10,textvariable=self.unitVar)
+		unitEntryLabel = ttk.Label(master,text="Enter 0 for Imperial (US), 1 for Metric, or 2 for Standard:")
+		unitEntry = ttk.Entry(master,width=5,textvariable=self.unitVar)
 		zipEntryLabel = ttk.Label(master,text = "Enter a 5 digit zipcode:")
 		self.zipcodeEntry = ttk.Entry(master,width=40,textvariable=zipcode)
 		zipcodeScrollbar = ttk.Scrollbar(master,orient=VERTICAL)
-		zipcodeScrollbar.grid(row = 4, column =5, sticky = N+S+W+E)
+		zipcodeScrollbar.grid(row = 6, column = 5, sticky = N+S+W+E)
 		self.zipcodeListbox = Listbox(master, listvariable=zipcodes, selectmode='multiple', width=40,height =5)
 		self.zipcodeListbox.configure(yscrollcommand=zipcodeScrollbar.set)
 		zipcodeScrollbar.config(command=self.zipcodeListbox.yview())
@@ -141,13 +143,12 @@ class emailGUI():
 		prefZipLabel = ttk.Label(master,text= "Preferred Zipcodes",style="Header.TLabel")
 		removeZipButton = ttk.Button(master,text='Remove Selected Zipcodes',command = lambda: self.removeZips(self.zipcodeListbox.curselection()))
 
-		#placement see whether a spacer is necessary
 		header.grid(row=0,column=0)
 		scoreCheckbox.grid(row=1,column=0)
 		scheduleCheckbox.grid(row=2,column=0)
 		weatherCheckbox.grid(row=3,column=0)
 
-		spacerHorz.grid(row=0,column=1,padx=5,pady=50)
+		spacerHorz.grid(row=0,column=1,padx=10,pady=50)
 
 		allTeamLabel.grid(row=0,column=2)
 		allTeamListbox.grid(row=1,column=2)
@@ -159,16 +160,17 @@ class emailGUI():
 		self.teamListbox.grid(row=7,column=2)
 		removeTeamButton.grid(row=8,column=2)
 
-		spacerHorz.grid(row=0,column=3,padx=5,pady=50)
+		spacerHorz.grid(row=0,column=3,padx=10,pady=50)
 
-		unitEntryLabel.grid(row = 0, column=4)
-		unitEntry.grid(row=1,column=4)
-		zipEntryLabel.grid(row=2,column=4)
-		self.zipcodeEntry.grid(row=3,column=4)
-		addZipButton.grid(row=4,column=4)
-		prefZipLabel.grid(row=5,column=4)
-		self.zipcodeListbox.grid(row=6,column=4)
-		removeZipButton.grid(row=7,column=4)
+		ttk.Label(master,text = 'Forecast Info', style='Header.TLabel').grid(row=0,column=4,pady=1)
+		unitEntryLabel.grid(row = 1, column=4)
+		unitEntry.grid(row=2,column=4)
+		zipEntryLabel.grid(row=3,column=4)
+		self.zipcodeEntry.grid(row=4,column=4)
+		addZipButton.grid(row=5,column=4)
+		prefZipLabel.grid(row=6,column=4)
+		self.zipcodeListbox.grid(row=7,column=4)
+		removeZipButton.grid(row=8,column=4)
 
 	def buildGuiSender(self, master, senderEmailVar,senderPasswordVar):
 		header = ttk.Label(master, text = 'Sender Credentials:', style = 'Header.TLabel')
@@ -176,7 +178,6 @@ class emailGUI():
 		emailEntry = ttk.Entry(master, width = 40,textvariable = senderEmailVar)
 		passwordLabel = ttk.Label(master, text = 'Password:')
 		passwordEntry = ttk.Entry(master, width = 40, show = '*', textvariable = senderPasswordVar)
-		# placement
 		header.grid(row = 0, column = 0, columnspan = 2)
 		emailLabel.grid(row = 1, column = 0, pady = 2, sticky = E)
 		emailEntry.grid(row = 1, column = 1, pady = 2, sticky = W)
@@ -187,9 +188,8 @@ class emailGUI():
 	def buildGuiControls(self,master):
 		updateButton = ttk.Button(master, text = 'Update Preferences', command = self.updatePreferences)
 		sendButton = ttk.Button(master, text = 'Manual Send', command = self.manualSend)
-		
-		updateButton.grid(row = 0, column = 0, padx = 5, pady = 5)
-		sendButton.grid(row = 0, column = 1, padx = 5, pady = 5)
+		updateButton.grid(row = 0, column = 0)
+		sendButton.grid(row = 0, column = 1)
 
 	def addRecipient(self):
 		newRecip = self.recipientsEntry.get()
@@ -244,15 +244,12 @@ class emailGUI():
 		self.__email.senderInfo = {'email':self.senderEmailVar.get(),'password':self.senderPasswordVar.get()}
 		self.teamListbox.delete(0,END)
 		self.zipcodeListbox.delete(0,END)
+		self.saveConfig()
 		
 
 	#program shuts down after sending emails and saving the info for them
 	def manualSend(self):
 		self.__email.sendEmail()
-		try:
-			self.saveConfig()
-		except Exception as e:
-			print(e)
 		self.running = False
 	
 	def saveConfig(self,filePath='wanbarConfig.json'):
@@ -265,9 +262,9 @@ class emailGUI():
 if __name__ == "__main__":
 	root = Tk()
 	app = emailGUI(root)
-	#root.mainloop()
-	while app.running:
+	root.mainloop()
+	"""while app.running:
 		app.manualSend()
-		app.running = False
+		app.running = False"""
 	os._exit(0)
 
